@@ -24,10 +24,6 @@ tile_labels = []
 key_btns  = []
 scr = lv.scr_act()
 
-# ── Phase de création UI ──
-creation_phase = 0
-creation_timer = 0
-
 # ── Title ──
 title_lbl = lv.label(scr)
 title_lbl.set_text("WORDLE")
@@ -56,11 +52,11 @@ def create_tiles_row(row):
         row_labels.append(tile_lbl)
     tile_labels.append(row_labels)
 
-# Clavier (une seule callback générique) ──
-KBD_Y = GRID_Y + MAX_ROWS * (TILE_SIZE + TILE_GAP) + 4
+# Clavier en bas de l'écran ──
 KEY_W = 24
 KEY_H = 26
 KEY_GAP = 3
+KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - KEY_GAP
 
 def add_letter(letter):
     global current_col, current_guess
@@ -135,21 +131,21 @@ def submit_guess():
     else:
         set_status("Essai " + str(current_row + 1) + "/" + str(MAX_ROWS))
 
-def make_key(key, x, y, w):
-    kb = lv.btn(scr)
-    kb.set_size(w, KEY_H)
-    kb.align(lv.ALIGN.TOP_LEFT, x, y)
-    
-    # Utiliser une fermeture pour capturer la clé
-    def on_key_click(evt, k=key):
+def make_key_handler(k):
+    def handler(evt):
         if k == "OK":
             submit_guess()
         elif k == "<":
             delete_letter()
         else:
             add_letter(k)
-    
-    kb.add_event_cb(on_key_click, lv.EVENT.CLICKED, 0)
+    return handler
+
+def make_key(key, x, y, w):
+    kb = lv.btn(scr)
+    kb.set_size(w, KEY_H)
+    kb.align(lv.ALIGN.TOP_LEFT, x, y)
+    kb.add_event_cb(make_key_handler(key), lv.EVENT.CLICKED, 0)
     kl = lv.label(kb)
     kl.set_text(key)
     kl.center()
@@ -178,74 +174,49 @@ def on_home(evt):
 
 home_btn.add_event_cb(on_home, lv.EVENT.CLICKED, 0)
 
-# ── Création progressive via timer ──
-def creation_step(t):
-    global creation_phase, creation_timer
-    
-    # Phase 0-5: créer les lignes de la grille
-    if creation_phase < MAX_ROWS:
-        create_tiles_row(creation_phase)
-        set_status("Init " + str(creation_phase + 1) + "/6")
-        creation_phase += 1
-        return
-    
-    # Phase 6: créer le clavier
-    if creation_phase == 6:
-        row1 = ["Q","W","E","R","T","Y","U","I","O","P"]
-        x = (320 - (len(row1) * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
-        for k in row1:
-            x = make_key(k, x, KBD_Y, KEY_W)
-        creation_phase += 1
-        return
-    
-    if creation_phase == 7:
-        row2 = ["A","S","D","F","G","H","J","K","L"]
-        x = (320 - (len(row2) * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
-        for k in row2:
-            x = make_key(k, x, KBD_Y + KEY_H + KEY_GAP, KEY_W)
-        creation_phase += 1
-        return
-    
-    if creation_phase == 8:
-        row3 = ["<","Z","X","C","V","B","N","M","OK"]
-        y = KBD_Y + 2 * (KEY_H + KEY_GAP)
-        x = make_key("<", 10, y, KEY_W + 6)
-        for k in ["Z","X","C","V","B","N","M"]:
-            x = make_key(k, x, y, KEY_W)
-        make_key("OK", x, y, KEY_W + 6)
-        creation_phase += 1
-        return
-    
-    # Phase 9: charger le mot
-    if creation_phase == 9:
-        set_status("Chargement...")
-        raw = lv.http_get(WORD_API)
-        global target_word
-        if raw:
-            word = ""
-            in_word = False
-            for ch in raw:
-                if ch == '"' and not in_word:
-                    in_word = True
-                    continue
-                if ch == '"' and in_word:
-                    break
-                if in_word:
-                    word += ch
-            if len(word) == WORD_LEN:
-                target_word = to_upper(word)
-            else:
-                target_word = "CRANE"
-        else:
-            target_word = "DEBUG"
-        set_status("Essai 1/" + str(MAX_ROWS))
-        creation_phase += 1
-        # Arrêter le timer
-        t._del()
-        creation_timer = 0
-        return
+home_btn.add_event_cb(on_home, lv.EVENT.CLICKED, 0)
 
-# Lancer la création progressive
-creation_timer = lv.timer_create_basic()
-creation_timer.set_period(50)  # 50ms entre chaque phase
-creation_timer.set_cb(creation_step)
+# ── Création directe (tout d'un coup) ──
+# Créer les lignes de la grille
+for row in range(MAX_ROWS):
+    create_tiles_row(row)
+
+# Créer le clavier
+row1 = ["Q","W","E","R","T","Y","U","I","O","P"]
+x = (320 - (len(row1) * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
+for k in row1:
+    x = make_key(k, x, KBD_Y, KEY_W)
+
+row2 = ["A","S","D","F","G","H","J","K","L"]
+x = (320 - (len(row2) * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
+for k in row2:
+    x = make_key(k, x, KBD_Y + KEY_H + KEY_GAP, KEY_W)
+
+row3 = ["<","Z","X","C","V","B","N","M","OK"]
+y = KBD_Y + 2 * (KEY_H + KEY_GAP)
+x = make_key("<", 10, y, KEY_W + 6)
+for k in ["Z","X","C","V","B","N","M"]:
+    x = make_key(k, x, y, KEY_W)
+make_key("OK", x, y, KEY_W + 6)
+
+# Charger le mot
+raw = lv.http_get(WORD_API)
+if raw:
+    word = ""
+    in_word = False
+    for ch in raw:
+        if ch == '"' and not in_word:
+            in_word = True
+            continue
+        if ch == '"' and in_word:
+            break
+        if in_word:
+            word += ch
+    if len(word) == WORD_LEN:
+        target_word = to_upper(word)
+    else:
+        target_word = "CRANE"
+else:
+    target_word = "DEBUG"
+
+set_status("Essai 1/" + str(MAX_ROWS))
