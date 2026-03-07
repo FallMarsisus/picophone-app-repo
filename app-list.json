@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-07T20:28:48.533123+00:00",
+  "generated_at": "2026-03-07T20:42:18.223225+00:00",
   "app_count": 3,
   "apps": [
     {
@@ -20,24 +20,24 @@
       "name": "Trivia Quiz",
       "description": "Answer trivia questions from the Open Trivia Database. Multiple choice questions with score tracking, difficulty selection, and category support.",
       "author": "FallMarsisus",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-07T21:26:43+01:00",
+      "last_updated": "2026-03-07T21:42:09+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "4dfcfa75184d243f1a21f3b83aa8acb29cb30877"
+      "last_commit_sha": "3bd841b13c489a8ac43be0843572e0084dc20059"
     },
     {
       "id": "wordle",
       "name": "Wordle",
       "description": "The classic Wordle word-guessing game. Guess the 5-letter word in 6 tries. Colors indicate correct letters (green), misplaced letters (yellow) or absent letters (gray).",
       "author": "FallMarsisus",
-      "version": "1.6.4",
+      "version": "1.6.5",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-07T21:28:36+01:00",
+      "last_updated": "2026-03-07T21:42:09+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "f2a40738f376909a66697582105f2581e9beae48"
+      "last_commit_sha": "3bd841b13c489a8ac43be0843572e0084dc20059"
     }
   ]
 }
