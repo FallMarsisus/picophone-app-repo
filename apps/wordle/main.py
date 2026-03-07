@@ -21,8 +21,6 @@ game_over    = False
 
 # ── UI objects ──
 tile_labels = []
-key_btns = []
-key_vals = []
 scr = lv.scr_act()
 
 # ── Title ──
@@ -151,37 +149,72 @@ def submit_guess():
     else:
         set_status("Essai " + str(current_row + 1) + "/" + str(MAX_ROWS))
 
-def on_key_click(evt):
-    btn = evt.get_target()
-    if not btn:
-        return
+def on_key_Q(evt): add_letter("Q")
+def on_key_W(evt): add_letter("W")
+def on_key_E(evt): add_letter("E")
+def on_key_R(evt): add_letter("R")
+def on_key_T(evt): add_letter("T")
+def on_key_Y(evt): add_letter("Y")
+def on_key_U(evt): add_letter("U")
+def on_key_I(evt): add_letter("I")
+def on_key_O(evt): add_letter("O")
+def on_key_P(evt): add_letter("P")
+def on_key_A(evt): add_letter("A")
+def on_key_S(evt): add_letter("S")
+def on_key_D(evt): add_letter("D")
+def on_key_F(evt): add_letter("F")
+def on_key_G(evt): add_letter("G")
+def on_key_H(evt): add_letter("H")
+def on_key_J(evt): add_letter("J")
+def on_key_K(evt): add_letter("K")
+def on_key_L(evt): add_letter("L")
+def on_key_Z(evt): add_letter("Z")
+def on_key_X(evt): add_letter("X")
+def on_key_C(evt): add_letter("C")
+def on_key_V(evt): add_letter("V")
+def on_key_B(evt): add_letter("B")
+def on_key_N(evt): add_letter("N")
+def on_key_M(evt): add_letter("M")
+def on_key_OK(evt): submit_guess()
+def on_key_DEL(evt): delete_letter()
 
-    key = ""
-    i = 0
-    total = count_items(key_btns)
-    while i < total:
-        if key_btns[i] == btn:
-            key = key_vals[i]
-            break
-        i += 1
-
-    if key == "":
-        return
-
-    if key == "OK":
-        submit_guess()
-    elif key == "<":
-        delete_letter()
-    elif key != "":
-        add_letter(key)
+def get_key_cb(key):
+    if key == "Q": return on_key_Q
+    if key == "W": return on_key_W
+    if key == "E": return on_key_E
+    if key == "R": return on_key_R
+    if key == "T": return on_key_T
+    if key == "Y": return on_key_Y
+    if key == "U": return on_key_U
+    if key == "I": return on_key_I
+    if key == "O": return on_key_O
+    if key == "P": return on_key_P
+    if key == "A": return on_key_A
+    if key == "S": return on_key_S
+    if key == "D": return on_key_D
+    if key == "F": return on_key_F
+    if key == "G": return on_key_G
+    if key == "H": return on_key_H
+    if key == "J": return on_key_J
+    if key == "K": return on_key_K
+    if key == "L": return on_key_L
+    if key == "Z": return on_key_Z
+    if key == "X": return on_key_X
+    if key == "C": return on_key_C
+    if key == "V": return on_key_V
+    if key == "B": return on_key_B
+    if key == "N": return on_key_N
+    if key == "M": return on_key_M
+    if key == "OK": return on_key_OK
+    if key == "<": return on_key_DEL
+    return on_key_DEL
 
 def make_key(key, x, y, w):
     kb = lv.btn(scr)
     kb.set_size(w, KEY_H)
     kb.align(lv.ALIGN.TOP_LEFT, x, y)
-    key_btns.append(kb)
-    key_vals.append(key)
-    kb.add_event_cb(on_key_click, lv.EVENT.CLICKED, 0)
+    cb = get_key_cb(key)
+    kb.add_event_cb(cb, lv.EVENT.CLICKED, 0)
     kl = lv.label(kb)
     kl.set_text(key)
     kl.center()
