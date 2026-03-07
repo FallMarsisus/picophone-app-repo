@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-07T22:18:33.560651+00:00",
+  "generated_at": "2026-03-07T22:22:54.623439+00:00",
   "app_count": 3,
   "apps": [
     {
@@ -20,12 +20,12 @@
       "name": "Trivia Quiz",
       "description": "Answer trivia questions from the Open Trivia Database. Multiple choice questions with score tracking, difficulty selection, and category support.",
       "author": "FallMarsisus",
-      "version": "1.0.8",
+      "version": "1.0.9",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-07T23:18:23+01:00",
+      "last_updated": "2026-03-07T23:22:45+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "10eaddd8af3a506338fb60d3a2f20c4af1fd44c9"
+      "last_commit_sha": "a29b9d37212bc8b010487490127d471a3c2da29a"
     },
     {
       "id": "wordle",
