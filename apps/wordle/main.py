@@ -126,21 +126,20 @@ def submit_guess():
     else:
         set_status("Essai " + str(current_row + 1) + "/" + str(MAX_ROWS))
 
-def on_key_click(evt):
-    btn = evt.get_target()
-    key = btn.get_user_data()
-    if key == "OK":
-        submit_guess()
-    elif key == "<":
-        delete_letter()
-    else:
-        add_letter(key)
-
 def make_key(key, x, y, w):
     kb = lv.btn(scr)
     kb.set_size(w, KEY_H)
     kb.align(lv.ALIGN.TOP_LEFT, x, y)
-    kb.set_user_data(key)
+    
+    # Utiliser une fermeture pour capturer la clé
+    def on_key_click(evt, k=key):
+        if k == "OK":
+            submit_guess()
+        elif k == "<":
+            delete_letter()
+        else:
+            add_letter(k)
+    
     kb.add_event_cb(on_key_click, lv.EVENT.CLICKED, 0)
     kl = lv.label(kb)
     kl.set_text(key)
