@@ -634,9 +634,9 @@ def show_end():
 # ─── Fetch & start game ──────────────────────────────────
 def fetch_questions(t):
     global questions, qidx, score, total, fetch_timer, _rseed
-    if t:
-        t._del()
+    t._del()
     fetch_timer = 0
+    
     url = API_BASE + "?amount=" + str(Q_PER_ROUND)
     url = url + "&category=" + str(cat_id)
     url = url + "&difficulty=" + diff_str
@@ -748,7 +748,9 @@ def start_game():
     if fetch_timer != 0:
         fetch_timer._del()
         fetch_timer = 0
-    fetch_questions(0)
+    fetch_timer = lv.timer_create_basic()
+    fetch_timer.set_period(100)
+    fetch_timer.set_cb(fetch_questions)
 
 def on_play(evt):
     start_game()
