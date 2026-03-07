@@ -70,6 +70,15 @@ def add_letter(letter):
     tile_labels[current_row][current_col].set_text(letter)
     current_col += 1
 
+def to_upper(s):
+    result = ""
+    for ch in s:
+        if ch >= 'a' and ch <= 'z':
+            result += chr(ord(ch) - 32)
+        else:
+            result += ch
+    return result
+
 def delete_letter():
     global current_col, current_guess
     if game_over or len(current_guess) == 0:
@@ -109,8 +118,8 @@ def submit_guess():
     if len(current_guess) < WORD_LEN:
         set_status("Mot trop court!")
         return
-    guess = current_guess.upper()
-    target = target_word.upper()
+    guess = to_upper(current_guess)
+    target = to_upper(target_word)
     colors = compute_colors(guess, target)
     apply_row_colors(current_row, guess, colors)
     if guess == target:
@@ -224,7 +233,7 @@ def creation_step(t):
                 if in_word:
                     word += ch
             if len(word) == WORD_LEN:
-                target_word = word.upper()
+                target_word = to_upper(word)
             else:
                 target_word = "CRANE"
         else:
