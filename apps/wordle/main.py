@@ -82,35 +82,44 @@ def delete_letter():
     current_guess = new_guess
     tile_labels[current_row][current_col].set_text(" ")
 
+def str_to_list(s):
+    out = []
+    for ch in s:
+        out.append(ch)
+    return out
+
 def compute_colors(guess, target):
+    g = str_to_list(guess)
+    t = str_to_list(target)
     colors = ["X", "X", "X", "X", "X"]
     remaining = []
-    for ch in target:
+    for ch in t:
         remaining.append(ch)
     for i in range(WORD_LEN):
-        if guess[i] == target[i]:
+        if g[i] == t[i]:
             colors[i] = "G"
             remaining[i] = ""
     for i in range(WORD_LEN):
         if colors[i] == "G":
             continue
         for j in range(WORD_LEN):
-            if remaining[j] == guess[i]:
+            if remaining[j] == g[i]:
                 colors[i] = "Y"
                 remaining[j] = ""
                 break
     return colors
 
 def apply_row_colors(row, guess, colors):
+    g = str_to_list(guess)
     for col in range(WORD_LEN):
         lbl = tile_labels[row][col]
         c = colors[col]
         if c == "G":
-            lbl.set_text("[" + guess[col] + "]")
+            lbl.set_text("[" + g[col] + "]")
         elif c == "Y":
-            lbl.set_text("(" + guess[col] + ")")
+            lbl.set_text("(" + g[col] + ")")
         else:
-            lbl.set_text(" " + guess[col] + " ")
+            lbl.set_text(" " + g[col] + " ")
 
 def submit_guess():
     global current_row, current_col, current_guess, game_over
