@@ -31,6 +31,10 @@ key_btns = []
 key_map = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 # keyboard color state: 0=unused 1=gray 2=yellow 3=green
 kb_state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+colors_buf = [0, 0, 0, 0, 0]
+rem_buf = ["", "", "", "", ""]
+submit_timer = 0
+submit_pending = 0
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -149,22 +153,30 @@ def submit_guess():
     if current_col < WORD_LEN:
         status_lbl.set_text("5 lettres!")
         return
-    colors = [0, 0, 0, 0, 0]
-    rem = [target[0], target[1], target[2], target[3], target[4]]
+    colors_buf[0] = 0
+    colors_buf[1] = 0
+    colors_buf[2] = 0
+    colors_buf[3] = 0
+    colors_buf[4] = 0
+    rem_buf[0] = target[0]
+    rem_buf[1] = target[1]
+    rem_buf[2] = target[2]
+    rem_buf[3] = target[3]
+    rem_buf[4] = target[4]
     i = 0
     while i < WORD_LEN:
         if guess[i] == target[i]:
-            colors[i] = 2
-            rem[i] = ""
+            colors_buf[i] = 2
+            rem_buf[i] = ""
         i = i + 1
     i = 0
     while i < WORD_LEN:
-        if colors[i] == 0:
+        if colors_buf[i] == 0:
             j = 0
             while j < WORD_LEN:
-                if rem[j] == guess[i]:
-                    colors[i] = 1
-                    rem[j] = ""
+                if rem_buf[j] == guess[i]:
+                    colors_buf[i] = 1
+                    rem_buf[j] = ""
                     break
                 j = j + 1
         i = i + 1
@@ -175,10 +187,10 @@ def submit_guess():
     all_green = 1
     while i < WORD_LEN:
         rl[i].set_text(guess[i])
-        if colors[i] == 2:
+        if colors_buf[i] == 2:
             rb[i].set_style_bg_color(COL_GREEN, 0)
             color_key(guess[i], 3)
-        elif colors[i] == 1:
+        elif colors_buf[i] == 1:
             rb[i].set_style_bg_color(COL_YELLOW, 0)
             color_key(guess[i], 2)
             all_green = 0
@@ -226,11 +238,30 @@ class KeyBtn:
     def on_click(self, e):
         t = self.text
         if t == "OK":
-            submit_guess()
+            request_submit()
         elif t == "<":
             delete_letter()
         else:
             add_letter(t)
+
+def do_submit_timer(t):
+    global submit_timer, submit_pending
+    t._del()
+    submit_timer = 0
+    if submit_pending == 1:
+        submit_pending = 0
+        submit_guess()
+
+def request_submit():
+    global submit_timer, submit_pending
+    if game_over:
+        return
+    submit_pending = 1
+    if submit_timer != 0:
+        return
+    submit_timer = lv.timer_create_basic()
+    submit_timer.set_period(1)
+    submit_timer.set_cb(do_submit_timer)
 
 # --------------- Home button ---------------
 home_btn = lv.btn(scr)
