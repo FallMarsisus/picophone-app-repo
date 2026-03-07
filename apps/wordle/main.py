@@ -35,7 +35,7 @@ ktmr = 0
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
-scr.set_style_bg_color(lv.color_hex(0x121213), 0)
+scr.set_style_bg_color(lv.color_black(), 0)
 
 tl = lv.label(scr)
 tl.set_text("WORDLE")
@@ -44,7 +44,7 @@ tl.align(lv.ALIGN.TOP_MID, 0, 8)
 
 sl = lv.label(scr)
 sl.set_text("")
-sl.set_style_text_color(lv.color_hex(0xAAAAAA), 0)
+sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
 sl.align(lv.ALIGN.TOP_MID, 0, 28)
 
 def upc(ch):
@@ -195,8 +195,8 @@ def show_replay(msg):
     mbox = lv.obj(scr)
     mbox.set_size(240, 140)
     mbox.center()
-    mbox.set_style_bg_color(lv.color_hex(0x1A1A1B), 0)
-    mbox.set_style_border_color(lv.color_hex(0x565758), 0)
+    mbox.set_style_bg_color(lv.color_black(), 0)
+    mbox.set_style_border_color(lv.palette_main(lv.PALETTE.GREY), 0)
     mbox.set_style_border_width(2, 0)
     mbox.set_style_radius(12, 0)
     mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -231,9 +231,9 @@ def new_game():
     for row in range(MAX_ROWS):
         for col in range(WORD_LEN):
             tbtn[row][col].set_style_bg_color(
-                lv.color_hex(0x3A3A3C), 0)
+                lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
             tbtn[row][col].set_style_border_color(
-                lv.color_hex(0x565758), 0)
+                lv.palette_main(lv.PALETTE.GREY), 0)
             tlbl[row][col].set_text(" ")
             tlbl[row][col].set_style_text_color(
                 lv.color_white(), 0)
@@ -322,8 +322,8 @@ for row in range(MAX_ROWS):
         tx = GX + col * (TS + TG)
         ty = GY + row * (TS + TG)
         ti.align(lv.ALIGN.TOP_LEFT, tx, ty)
-        ti.set_style_bg_color(lv.color_hex(0x3A3A3C), 0)
-        ti.set_style_border_color(lv.color_hex(0x565758), 0)
+        ti.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+        ti.set_style_border_color(lv.palette_main(lv.PALETTE.GREY), 0)
         ti.set_style_border_width(2, 0)
         ti.set_style_radius(4, 0)
         rb.append(ti)

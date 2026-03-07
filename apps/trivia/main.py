@@ -3,18 +3,20 @@ import pika_lvgl as lv
 # ─── Configuration ──────────────────────────────────────────
 SCR_W = 320
 SCR_H = 480
-BG_COLOR = 0x1A1A2E
-ACCENT = 0x16213E
-CORRECT_COLOR = 0x2ECC71
-WRONG_COLOR = 0xE74C3C
-HIGHLIGHT_COLOR = 0x0F3460
-TEXT_COLOR = 0xEEEEEE
-DIM_TEXT = 0x888888
-BTN_COLOR = 0x16213E
 BTN_RADIUS = 10
 Q_PER_ROUND = 5
 
 API_BASE = "https://opentdb.com/api.php"
+
+# ─── Colors (palette only, no color_hex) ────────────────────
+COL_BG = lv.color_black()
+COL_ACCENT = lv.palette_main(lv.PALETTE.BLUE_GREY)
+COL_CORRECT = lv.palette_main(lv.PALETTE.GREEN)
+COL_WRONG = lv.palette_main(lv.PALETTE.RED)
+COL_HIGHLIGHT = lv.palette_main(lv.PALETTE.BLUE)
+COL_TEXT = lv.color_white()
+COL_DIM = lv.palette_main(lv.PALETTE.GREY)
+COL_BTN = lv.palette_main(lv.PALETTE.BLUE_GREY)
 
 # ─── State ──────────────────────────────────────────────────
 questions = []
@@ -228,17 +230,17 @@ def parse_questions(raw):
 # ─── Screen setup ──────────────────────────────────────────
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
-scr.set_style_bg_color(lv.color_hex(BG_COLOR), 0)
+scr.set_style_bg_color(COL_BG, 0)
 
 # ─── Home button ───────────────────────────────────────────
 hb = lv.btn(scr)
 hb.set_size(60, 26)
 hb.align(lv.ALIGN.TOP_LEFT, 4, 4)
-hb.set_style_bg_color(lv.color_hex(ACCENT), 0)
+hb.set_style_bg_color(COL_ACCENT, 0)
 hb.set_style_radius(6, 0)
 hl = lv.label(hb)
 hl.set_text("< Home")
-hl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+hl.set_style_text_color(COL_TEXT, 0)
 hl.center()
 
 def dq(t):
@@ -258,26 +260,26 @@ hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 # ─── Title ─────────────────────────────────────────────────
 title_lbl = lv.label(scr)
 title_lbl.set_text("Trivia Quiz")
-title_lbl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+title_lbl.set_style_text_color(COL_TEXT, 0)
 title_lbl.align(lv.ALIGN.TOP_MID, 0, 6)
 
 # ─── Score / Progress label ───────────────────────────────
 score_lbl = lv.label(scr)
 score_lbl.set_text("")
-score_lbl.set_style_text_color(lv.color_hex(DIM_TEXT), 0)
+score_lbl.set_style_text_color(COL_DIM, 0)
 score_lbl.align(lv.ALIGN.TOP_RIGHT, -8, 8)
 
 # ─── Category label ───────────────────────────────────────
 cat_lbl = lv.label(scr)
 cat_lbl.set_text("")
-cat_lbl.set_style_text_color(lv.color_hex(DIM_TEXT), 0)
+cat_lbl.set_style_text_color(COL_DIM, 0)
 cat_lbl.align(lv.ALIGN.TOP_MID, 0, 28)
 
 # ─── Question area ────────────────────────────────────────
 q_box = lv.obj(scr)
 q_box.set_size(300, 100)
 q_box.align(lv.ALIGN.TOP_MID, 0, 46)
-q_box.set_style_bg_color(lv.color_hex(ACCENT), 0)
+q_box.set_style_bg_color(COL_ACCENT, 0)
 q_box.set_style_border_width(0, 0)
 q_box.set_style_radius(BTN_RADIUS, 0)
 q_box.set_style_pad_all(10, 0)
@@ -287,7 +289,7 @@ q_lbl = lv.label(q_box)
 q_lbl.set_long_mode(1)
 q_lbl.set_width(276)
 q_lbl.set_text("Chargement...")
-q_lbl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+q_lbl.set_style_text_color(COL_TEXT, 0)
 q_lbl.align(lv.ALIGN.TOP_LEFT, 0, 0)
 
 # ─── Answer buttons ───────────────────────────────────────
@@ -298,15 +300,15 @@ for i in range(4):
     b.set_size(296, 48)
     by = 154 + i * 56
     b.align(lv.ALIGN.TOP_MID, 0, by)
-    b.set_style_bg_color(lv.color_hex(BTN_COLOR), 0)
+    b.set_style_bg_color(COL_BTN, 0)
     b.set_style_radius(BTN_RADIUS, 0)
-    b.set_style_border_color(lv.color_hex(0x333355), 0)
+    b.set_style_border_color(COL_DIM, 0)
     b.set_style_border_width(1, 0)
     l = lv.label(b)
     l.set_long_mode(1)
     l.set_width(270)
     l.set_text("")
-    l.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+    l.set_style_text_color(COL_TEXT, 0)
     l.center()
     ans_btns.append(b)
     ans_lbls.append(l)
@@ -314,38 +316,38 @@ for i in range(4):
 # ─── Feedback label ───────────────────────────────────────
 fb_lbl = lv.label(scr)
 fb_lbl.set_text("")
-fb_lbl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+fb_lbl.set_style_text_color(COL_TEXT, 0)
 fb_lbl.align(lv.ALIGN.TOP_MID, 0, 382)
 
 # ─── Next button ──────────────────────────────────────────
 next_btn = lv.btn(scr)
 next_btn.set_size(140, 40)
 next_btn.align(lv.ALIGN.TOP_MID, 0, 406)
-next_btn.set_style_bg_color(lv.color_hex(HIGHLIGHT_COLOR), 0)
+next_btn.set_style_bg_color(COL_HIGHLIGHT, 0)
 next_btn.set_style_radius(BTN_RADIUS, 0)
 next_btn.add_flag(lv.obj.FLAG.HIDDEN)
 
 next_lbl = lv.label(next_btn)
 next_lbl.set_text("Suivant >")
-next_lbl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+next_lbl.set_style_text_color(COL_TEXT, 0)
 next_lbl.center()
 
 # ─── Menu container (hidden initially) ────────────────────
 menu_box = lv.obj(scr)
 menu_box.set_size(SCR_W, SCR_H)
 menu_box.align(lv.ALIGN.TOP_LEFT, 0, 0)
-menu_box.set_style_bg_color(lv.color_hex(BG_COLOR), 0)
+menu_box.set_style_bg_color(COL_BG, 0)
 menu_box.set_style_border_width(0, 0)
 menu_box.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
 menu_title = lv.label(menu_box)
 menu_title.set_text("Trivia Quiz")
-menu_title.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+menu_title.set_style_text_color(COL_TEXT, 0)
 menu_title.align(lv.ALIGN.TOP_MID, 0, 40)
 
 menu_sub = lv.label(menu_box)
 menu_sub.set_text("Choisis une categorie :")
-menu_sub.set_style_text_color(lv.color_hex(DIM_TEXT), 0)
+menu_sub.set_style_text_color(COL_DIM, 0)
 menu_sub.align(lv.ALIGN.TOP_MID, 0, 70)
 
 # Categories: id, name
@@ -372,20 +374,20 @@ for ci in range(len(cats)):
     cx = 42 + col * 148
     cy = 100 + row * 44
     cb.align(lv.ALIGN.TOP_LEFT, cx, cy)
-    cb.set_style_bg_color(lv.color_hex(BTN_COLOR), 0)
+    cb.set_style_bg_color(COL_BTN, 0)
     cb.set_style_radius(8, 0)
-    cb.set_style_border_color(lv.color_hex(HIGHLIGHT_COLOR), 0)
+    cb.set_style_border_color(COL_HIGHLIGHT, 0)
     cb.set_style_border_width(1, 0)
     cl = lv.label(cb)
     cl.set_text(cats[ci][1])
-    cl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+    cl.set_style_text_color(COL_TEXT, 0)
     cl.center()
     menu_cat_btns.append(cb)
 
 # Difficulty selector
 diff_label = lv.label(menu_box)
 diff_label.set_text("Difficulte :")
-diff_label.set_style_text_color(lv.color_hex(DIM_TEXT), 0)
+diff_label.set_style_text_color(COL_DIM, 0)
 diff_label.align(lv.ALIGN.TOP_MID, 0, 282)
 
 diffs = ["easy", "medium", "hard"]
@@ -401,14 +403,14 @@ for di in range(3):
     db.set_style_radius(8, 0)
     db.set_style_border_width(1, 0)
     if di == 0:
-        db.set_style_bg_color(lv.color_hex(HIGHLIGHT_COLOR), 0)
-        db.set_style_border_color(lv.color_hex(0x2ECC71), 0)
+        db.set_style_bg_color(COL_HIGHLIGHT, 0)
+        db.set_style_border_color(COL_CORRECT, 0)
     else:
-        db.set_style_bg_color(lv.color_hex(BTN_COLOR), 0)
-        db.set_style_border_color(lv.color_hex(HIGHLIGHT_COLOR), 0)
+        db.set_style_bg_color(COL_BTN, 0)
+        db.set_style_border_color(COL_HIGHLIGHT, 0)
     dl = lv.label(db)
     dl.set_text(diff_names[di])
-    dl.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+    dl.set_style_text_color(COL_TEXT, 0)
     dl.center()
     diff_btns.append(db)
     diff_lbls_ui.append(dl)
@@ -417,7 +419,7 @@ for di in range(3):
 play_btn = lv.btn(menu_box)
 play_btn.set_size(200, 46)
 play_btn.align(lv.ALIGN.TOP_MID, 0, 366)
-play_btn.set_style_bg_color(lv.color_hex(CORRECT_COLOR), 0)
+play_btn.set_style_bg_color(COL_CORRECT, 0)
 play_btn.set_style_radius(BTN_RADIUS, 0)
 play_lbl = lv.label(play_btn)
 play_lbl.set_text("Jouer !")
@@ -432,14 +434,14 @@ def make_cat_cb(idx):
         for ci2 in range(len(cats)):
             if ci2 == idx:
                 menu_cat_btns[ci2].set_style_bg_color(
-                    lv.color_hex(HIGHLIGHT_COLOR), 0)
+                    COL_HIGHLIGHT, 0)
                 menu_cat_btns[ci2].set_style_border_color(
-                    lv.color_hex(0x2ECC71), 0)
+                    COL_CORRECT, 0)
             else:
                 menu_cat_btns[ci2].set_style_bg_color(
-                    lv.color_hex(BTN_COLOR), 0)
+                    COL_BTN, 0)
                 menu_cat_btns[ci2].set_style_border_color(
-                    lv.color_hex(HIGHLIGHT_COLOR), 0)
+                    COL_HIGHLIGHT, 0)
     return cb
 
 for ci in range(len(cats)):
@@ -454,14 +456,14 @@ def make_diff_cb(idx):
         for di2 in range(3):
             if di2 == idx:
                 diff_btns[di2].set_style_bg_color(
-                    lv.color_hex(HIGHLIGHT_COLOR), 0)
+                    COL_HIGHLIGHT, 0)
                 diff_btns[di2].set_style_border_color(
-                    lv.color_hex(0x2ECC71), 0)
+                    COL_CORRECT, 0)
             else:
                 diff_btns[di2].set_style_bg_color(
-                    lv.color_hex(BTN_COLOR), 0)
+                    COL_BTN, 0)
                 diff_btns[di2].set_style_border_color(
-                    lv.color_hex(HIGHLIGHT_COLOR), 0)
+                    COL_HIGHLIGHT, 0)
     return cb
 
 for di in range(3):
@@ -504,12 +506,9 @@ def show_question():
         if i < nchoices:
             ans_lbls[i].set_text(qd["choices"][i])
             ans_btns[i].clear_flag(lv.obj.FLAG.HIDDEN)
-            ans_btns[i].set_style_bg_color(
-                lv.color_hex(BTN_COLOR), 0)
-            ans_btns[i].set_style_border_color(
-                lv.color_hex(0x333355), 0)
-            ans_lbls[i].set_style_text_color(
-                lv.color_hex(TEXT_COLOR), 0)
+            ans_btns[i].set_style_bg_color(COL_BTN, 0)
+            ans_btns[i].set_style_border_color(COL_DIM, 0)
+            ans_lbls[i].set_style_text_color(COL_TEXT, 0)
         else:
             ans_btns[i].add_flag(lv.obj.FLAG.HIDDEN)
 
@@ -525,23 +524,19 @@ def make_ans_cb(idx):
         if idx == ci:
             score = score + 1
             fb_lbl.set_text("Correct !")
-            fb_lbl.set_style_text_color(
-                lv.color_hex(CORRECT_COLOR), 0)
+            fb_lbl.set_style_text_color(COL_CORRECT, 0)
         else:
             fb_lbl.set_text("Faux !")
-            fb_lbl.set_style_text_color(
-                lv.color_hex(WRONG_COLOR), 0)
+            fb_lbl.set_style_text_color(COL_WRONG, 0)
         # Color buttons
         nchoices = len(qd["choices"])
         for i in range(nchoices):
             if i == ci:
-                ans_btns[i].set_style_bg_color(
-                    lv.color_hex(CORRECT_COLOR), 0)
+                ans_btns[i].set_style_bg_color(COL_CORRECT, 0)
                 ans_lbls[i].set_style_text_color(
                     lv.color_white(), 0)
             elif i == idx:
-                ans_btns[i].set_style_bg_color(
-                    lv.color_hex(WRONG_COLOR), 0)
+                ans_btns[i].set_style_bg_color(COL_WRONG, 0)
                 ans_lbls[i].set_style_text_color(
                     lv.color_white(), 0)
         next_btn.clear_flag(lv.obj.FLAG.HIDDEN)
@@ -576,20 +571,20 @@ def show_end():
     mbox = lv.obj(scr)
     mbox.set_size(260, 200)
     mbox.center()
-    mbox.set_style_bg_color(lv.color_hex(ACCENT), 0)
-    mbox.set_style_border_color(lv.color_hex(HIGHLIGHT_COLOR), 0)
+    mbox.set_style_bg_color(COL_ACCENT, 0)
+    mbox.set_style_border_color(COL_HIGHLIGHT, 0)
     mbox.set_style_border_width(2, 0)
     mbox.set_style_radius(14, 0)
     mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
     et = lv.label(mbox)
     et.set_text("Partie terminee !")
-    et.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+    et.set_style_text_color(COL_TEXT, 0)
     et.align(lv.ALIGN.TOP_MID, 0, 14)
 
     es = lv.label(mbox)
     es.set_text(str(score) + " / " + str(n) + "  (" + str(pct) + "%)")
-    es.set_style_text_color(lv.color_hex(CORRECT_COLOR), 0)
+    es.set_style_text_color(COL_CORRECT, 0)
     es.align(lv.ALIGN.TOP_MID, 0, 46)
 
     if pct == 100:
@@ -602,13 +597,13 @@ def show_end():
         msg = "Courage !"
     em = lv.label(mbox)
     em.set_text(msg)
-    em.set_style_text_color(lv.color_hex(DIM_TEXT), 0)
+    em.set_style_text_color(COL_DIM, 0)
     em.align(lv.ALIGN.TOP_MID, 0, 76)
 
     rb = lv.btn(mbox)
     rb.set_size(110, 36)
     rb.align(lv.ALIGN.BOTTOM_LEFT, 10, -14)
-    rb.set_style_bg_color(lv.color_hex(CORRECT_COLOR), 0)
+    rb.set_style_bg_color(COL_CORRECT, 0)
     rb.set_style_radius(8, 0)
     rl = lv.label(rb)
     rl.set_text("Rejouer")
@@ -618,11 +613,11 @@ def show_end():
     mb = lv.btn(mbox)
     mb.set_size(110, 36)
     mb.align(lv.ALIGN.BOTTOM_RIGHT, -10, -14)
-    mb.set_style_bg_color(lv.color_hex(HIGHLIGHT_COLOR), 0)
+    mb.set_style_bg_color(COL_HIGHLIGHT, 0)
     mb.set_style_radius(8, 0)
     ml = lv.label(mb)
     ml.set_text("Menu")
-    ml.set_style_text_color(lv.color_hex(TEXT_COLOR), 0)
+    ml.set_style_text_color(COL_TEXT, 0)
     ml.center()
 
     def on_replay(evt):
@@ -666,7 +661,7 @@ def start_game():
     fb_lbl.set_text("")
     next_btn.add_flag(lv.obj.FLAG.HIDDEN)
     for b in ans_btns:
-        b.set_style_bg_color(lv.color_hex(BTN_COLOR), 0)
+        b.set_style_bg_color(COL_BTN, 0)
         b.add_flag(lv.obj.FLAG.HIDDEN)
     ft = lv.timer_create_basic()
     ft.set_period(100)
