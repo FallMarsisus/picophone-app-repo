@@ -21,7 +21,6 @@ game_over    = False
 
 # ── UI objects ──
 tile_labels = []
-key_btns  = []
 scr = lv.scr_act()
 
 # ── Title ──
@@ -60,7 +59,7 @@ KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - KEY_GAP
 
 def add_letter(letter):
     global current_col, current_guess
-    if game_over or len(current_guess) >= WORD_LEN:
+    if game_over or current_col >= WORD_LEN:
         return
     current_guess += letter
     tile_labels[current_row][current_col].set_text(letter)
@@ -75,12 +74,31 @@ def to_upper(s):
             result += ch
     return result
 
+def count_chars(s):
+    n = 0
+    for _ in s:
+        n += 1
+    return n
+
+def count_items(seq):
+    n = 0
+    for _ in seq:
+        n += 1
+    return n
+
 def delete_letter():
     global current_col, current_guess
-    if game_over or len(current_guess) == 0:
+    if game_over or current_col == 0:
         return
-    current_guess = current_guess[:-1]
     current_col -= 1
+    new_guess = ""
+    idx = 0
+    for ch in current_guess:
+        if idx >= current_col:
+            break
+        new_guess += ch
+        idx += 1
+    current_guess = new_guess
     tile_labels[current_row][current_col].set_text(" ")
 
 def compute_colors(guess, target):
@@ -111,7 +129,7 @@ def apply_row_colors(row, guess, colors):
 
 def submit_guess():
     global current_row, current_col, current_guess, game_over
-    if len(current_guess) < WORD_LEN:
+    if current_col < WORD_LEN:
         set_status("Mot trop court!")
         return
     guess = to_upper(current_guess)
@@ -131,21 +149,23 @@ def submit_guess():
     else:
         set_status("Essai " + str(current_row + 1) + "/" + str(MAX_ROWS))
 
-def make_key_handler(k):
-    def handler(evt):
-        if k == "OK":
-            submit_guess()
-        elif k == "<":
-            delete_letter()
-        else:
-            add_letter(k)
-    return handler
+def on_key_click(evt):
+    key = evt.get_user_data()
+    if not key:
+        return
+
+    if key == "OK":
+        submit_guess()
+    elif key == "<":
+        delete_letter()
+    elif key != "":
+        add_letter(key)
 
 def make_key(key, x, y, w):
     kb = lv.btn(scr)
     kb.set_size(w, KEY_H)
     kb.align(lv.ALIGN.TOP_LEFT, x, y)
-    kb.add_event_cb(make_key_handler(key), lv.EVENT.CLICKED, 0)
+    kb.add_event_cb(on_key_click, lv.EVENT.CLICKED, key)
     kl = lv.label(kb)
     kl.set_text(key)
     kl.center()
@@ -174,8 +194,6 @@ def on_home(evt):
 
 home_btn.add_event_cb(on_home, lv.EVENT.CLICKED, 0)
 
-home_btn.add_event_cb(on_home, lv.EVENT.CLICKED, 0)
-
 # ── Création directe (tout d'un coup) ──
 # Créer les lignes de la grille
 for row in range(MAX_ROWS):
@@ -183,20 +201,22 @@ for row in range(MAX_ROWS):
 
 # Créer le clavier
 row1 = ["Q","W","E","R","T","Y","U","I","O","P"]
-x = (320 - (len(row1) * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
-for k in row1:
-    x = make_key(k, x, KBD_Y, KEY_W)
+row1_len = count_items(row1)
+x = (320 - (row1_len * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
+for key_name in row1:
+    x = make_key(key_name, x, KBD_Y, KEY_W)
 
 row2 = ["A","S","D","F","G","H","J","K","L"]
-x = (320 - (len(row2) * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
-for k in row2:
-    x = make_key(k, x, KBD_Y + KEY_H + KEY_GAP, KEY_W)
+row2_len = count_items(row2)
+x = (320 - (row2_len * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
+for key_name in row2:
+    x = make_key(key_name, x, KBD_Y + KEY_H + KEY_GAP, KEY_W)
 
 row3 = ["<","Z","X","C","V","B","N","M","OK"]
 y = KBD_Y + 2 * (KEY_H + KEY_GAP)
 x = make_key("<", 10, y, KEY_W + 6)
-for k in ["Z","X","C","V","B","N","M"]:
-    x = make_key(k, x, y, KEY_W)
+for key_name in ["Z","X","C","V","B","N","M"]:
+    x = make_key(key_name, x, y, KEY_W)
 make_key("OK", x, y, KEY_W + 6)
 
 # Charger le mot
@@ -212,7 +232,7 @@ if raw:
             break
         if in_word:
             word += ch
-    if len(word) == WORD_LEN:
+    if count_chars(word) == WORD_LEN:
         target_word = to_upper(word)
     else:
         target_word = "CRANE"
