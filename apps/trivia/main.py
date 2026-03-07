@@ -211,13 +211,21 @@ def shuf(arr):
         arr[j] = tmp
         i = i - 1
 
-class Tap:
-    def __init__(self, btn, kind, idx):
-        self.btn = btn
+class TBtn:
+    def __init__(self, parent, text, x, y, w, h, kind, idx):
+        b = lv.btn(parent)
+        b.set_size(w, h)
+        b.align(lv.ALIGN.TOP_LEFT, x, y)
+        l = lv.label(b)
+        l.set_text(text)
+        l.set_style_text_color(COL_TX, 0)
+        l.center()
+        self.btn = b
+        self.lbl = l
         self.kind = kind
         self.idx = idx
-        self.btn.clear_flag(lv.obj.FLAG.SCROLLABLE)
-        self.btn.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+        tap_refs.append(self)
 
     def oc(self, e):
         if self.kind == "home":
@@ -241,10 +249,6 @@ class Tap:
                 end_box._del()
             menu_after_end()
 
-def add_tap(btn, kind, idx):
-    t = Tap(btn, kind, idx)
-    tap_refs.append(t)
-
 def bring_home_top():
     hb.move_foreground()
 
@@ -254,15 +258,11 @@ scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(COL_BG, 0)
 
 # Home button
-hb = lv.btn(scr)
-hb.set_size(60, 26)
-hb.align(lv.ALIGN.TOP_LEFT, 4, 4)
+_home = TBtn(scr, "< Home", 4, 4, 60, 28, "home", 0)
+hb = _home.btn
+hl = _home.lbl
 hb.set_style_bg_color(COL_AC, 0)
 hb.set_style_radius(6, 0)
-hl = lv.label(hb)
-hl.set_text("< Home")
-hl.set_style_text_color(COL_TX, 0)
-hl.center()
 
 def dq(t):
     global qt
@@ -275,9 +275,6 @@ def oh(evt):
     qt = lv.timer_create_basic()
     qt.set_period(60)
     qt.set_cb(dq)
-
-def home_press():
-    oh(0)
 
 # Title
 tl = lv.label(scr)
@@ -316,20 +313,14 @@ abtns = []
 albls = []
 ai = 0
 while ai < 4:
-    b = lv.btn(scr)
-    b.set_size(296, 48)
     by = 154 + ai * 56
-    b.align(lv.ALIGN.TOP_MID, 0, by)
-    b.set_style_bg_color(COL_AC, 0)
-    b.set_style_radius(10, 0)
-    b.set_style_border_color(COL_DM, 0)
-    b.set_style_border_width(1, 0)
-    la = lv.label(b)
-    la.set_text("")
-    la.set_style_text_color(COL_TX, 0)
-    la.center()
-    abtns.append(b)
-    albls.append(la)
+    ao = TBtn(scr, "", 12, by, 296, 48, "ans", ai)
+    ao.btn.set_style_bg_color(COL_AC, 0)
+    ao.btn.set_style_radius(10, 0)
+    ao.btn.set_style_border_color(COL_DM, 0)
+    ao.btn.set_style_border_width(1, 0)
+    abtns.append(ao.btn)
+    albls.append(ao.lbl)
     ai = ai + 1
 
 # Feedback label
@@ -339,16 +330,12 @@ fblbl.set_style_text_color(COL_TX, 0)
 fblbl.align(lv.ALIGN.TOP_MID, 0, 382)
 
 # Next button
-nbtn = lv.btn(scr)
-nbtn.set_size(140, 40)
-nbtn.align(lv.ALIGN.TOP_MID, 0, 406)
+_next = TBtn(scr, "Suivant >", 90, 406, 140, 40, "next", 0)
+nbtn = _next.btn
+nlbl = _next.lbl
 nbtn.set_style_bg_color(COL_HL, 0)
 nbtn.set_style_radius(10, 0)
 nbtn.add_flag(lv.obj.FLAG.HIDDEN)
-nlbl = lv.label(nbtn)
-nlbl.set_text("Suivant >")
-nlbl.set_style_text_color(COL_TX, 0)
-nlbl.center()
 
 # Menu container
 mnu = lv.obj(scr)
@@ -373,22 +360,16 @@ msl.align(lv.ALIGN.TOP_MID, 0, 70)
 mcbs = []
 ci = 0
 while ci < 8:
-    cb = lv.btn(mnu)
-    cb.set_size(130, 36)
     col = ci % 2
     row = ci // 2
     cx = 42 + col * 148
     cy = 100 + row * 44
-    cb.align(lv.ALIGN.TOP_LEFT, cx, cy)
-    cb.set_style_bg_color(COL_AC, 0)
-    cb.set_style_radius(8, 0)
-    cb.set_style_border_color(COL_HL, 0)
-    cb.set_style_border_width(1, 0)
-    cl = lv.label(cb)
-    cl.set_text(cnms[ci])
-    cl.set_style_text_color(COL_TX, 0)
-    cl.center()
-    mcbs.append(cb)
+    co = TBtn(mnu, cnms[ci], cx, cy, 130, 36, "cat", ci)
+    co.btn.set_style_bg_color(COL_AC, 0)
+    co.btn.set_style_radius(8, 0)
+    co.btn.set_style_border_color(COL_HL, 0)
+    co.btn.set_style_border_width(1, 0)
+    mcbs.append(co.btn)
     ci = ci + 1
 
 # Difficulty label
@@ -403,35 +384,25 @@ dnms = ["Facile", "Moyen", "Difficile"]
 dbs = []
 di = 0
 while di < 3:
-    db = lv.btn(mnu)
-    db.set_size(90, 34)
     dx = 18 + di * 98
-    db.align(lv.ALIGN.TOP_LEFT, dx, 306)
-    db.set_style_radius(8, 0)
-    db.set_style_border_width(1, 0)
+    do = TBtn(mnu, dnms[di], dx, 306, 90, 34, "dif", di)
+    do.btn.set_style_radius(8, 0)
+    do.btn.set_style_border_width(1, 0)
     if di == 0:
-        db.set_style_bg_color(COL_HL, 0)
-        db.set_style_border_color(COL_OK, 0)
+        do.btn.set_style_bg_color(COL_HL, 0)
+        do.btn.set_style_border_color(COL_OK, 0)
     else:
-        db.set_style_bg_color(COL_AC, 0)
-        db.set_style_border_color(COL_HL, 0)
-    dbl = lv.label(db)
-    dbl.set_text(dnms[di])
-    dbl.set_style_text_color(COL_TX, 0)
-    dbl.center()
-    dbs.append(db)
+        do.btn.set_style_bg_color(COL_AC, 0)
+        do.btn.set_style_border_color(COL_HL, 0)
+    dbs.append(do.btn)
     di = di + 1
 
 # Play button
-pbtn = lv.btn(mnu)
-pbtn.set_size(200, 46)
-pbtn.align(lv.ALIGN.TOP_MID, 0, 366)
+_play = TBtn(mnu, "Jouer !", 60, 366, 200, 46, "play", 0)
+pbtn = _play.btn
+plbl = _play.lbl
 pbtn.set_style_bg_color(COL_OK, 0)
 pbtn.set_style_radius(10, 0)
-plbl = lv.label(pbtn)
-plbl.set_text("Jouer !")
-plbl.set_style_text_color(COL_TX, 0)
-plbl.center()
 
 # Select category
 def sel_cat(idx):
@@ -674,26 +645,12 @@ def show_end():
     em.set_text(msg)
     em.set_style_text_color(COL_DM, 0)
     em.align(lv.ALIGN.TOP_MID, 0, 76)
-    rb = lv.btn(eb)
-    rb.set_size(110, 36)
-    rb.align(lv.ALIGN.BOTTOM_LEFT, 10, -14)
-    rb.set_style_bg_color(COL_OK, 0)
-    rb.set_style_radius(8, 0)
-    rl = lv.label(rb)
-    rl.set_text("Rejouer")
-    rl.set_style_text_color(COL_TX, 0)
-    rl.center()
-    mb2 = lv.btn(eb)
-    mb2.set_size(110, 36)
-    mb2.align(lv.ALIGN.BOTTOM_RIGHT, -10, -14)
-    mb2.set_style_bg_color(COL_HL, 0)
-    mb2.set_style_radius(8, 0)
-    ml = lv.label(mb2)
-    ml.set_text("Menu")
-    ml.set_style_text_color(COL_TX, 0)
-    ml.center()
-    add_tap(rb, "replay", 0)
-    add_tap(mb2, "menu", 0)
+    ro = TBtn(eb, "Rejouer", 10, 150, 110, 36, "replay", 0)
+    ro.btn.set_style_bg_color(COL_OK, 0)
+    ro.btn.set_style_radius(8, 0)
+    mb = TBtn(eb, "Menu", 140, 150, 110, 36, "menu", 0)
+    mb.btn.set_style_bg_color(COL_HL, 0)
+    mb.btn.set_style_radius(8, 0)
 
 def replay_after_end():
     global end_box
@@ -805,31 +762,6 @@ def start_game():
     ft = lv.timer_create_basic()
     ft.set_period(100)
     ft.set_cb(do_fetch)
-
-def on_play(evt):
-    start_game()
-
-def play_press():
-    on_play(0)
-
-add_tap(hb, "home", 0)
-add_tap(mcbs[0], "cat", 0)
-add_tap(mcbs[1], "cat", 1)
-add_tap(mcbs[2], "cat", 2)
-add_tap(mcbs[3], "cat", 3)
-add_tap(mcbs[4], "cat", 4)
-add_tap(mcbs[5], "cat", 5)
-add_tap(mcbs[6], "cat", 6)
-add_tap(mcbs[7], "cat", 7)
-add_tap(dbs[0], "dif", 0)
-add_tap(dbs[1], "dif", 1)
-add_tap(dbs[2], "dif", 2)
-add_tap(abtns[0], "ans", 0)
-add_tap(abtns[1], "ans", 1)
-add_tap(abtns[2], "ans", 2)
-add_tap(abtns[3], "ans", 3)
-add_tap(nbtn, "next", 0)
-add_tap(pbtn, "play", 0)
 
 # Start with menu
 show_menu()
