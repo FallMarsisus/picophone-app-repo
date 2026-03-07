@@ -398,13 +398,18 @@ def df(t):
         r = results[ri]
         ri = ri + 1
         if r:
-            q = dhtml(r["question"])
-            cor = dhtml(r["correct_answer"])
+            rq = r["question"]
+            rc = r["correct_answer"]
             inc = r["incorrect_answers"]
+            q = dhtml(rq)
+            cor = dhtml(rc)
             if q and cor and len(inc) >= 3:
-                i0 = dhtml(inc[0])
-                i1 = dhtml(inc[1])
-                i2 = dhtml(inc[2])
+                t0 = inc[0]
+                t1 = inc[1]
+                t2 = inc[2]
+                i0 = dhtml(t0)
+                i1 = dhtml(t1)
+                i2 = dhtml(t2)
                 ch = [cor, i0, i1, i2]
                 _rs = _rs + len(q)
                 shuf(ch)
@@ -415,7 +420,8 @@ def df(t):
                     ci = 2
                 elif ch[3] == cor:
                     ci = 3
-                cat = dhtml(r["category"])
+                rcat = r["category"]
+                cat = dhtml(rcat)
                 q_txt.append(q)
                 q_a0.append(ch[0])
                 q_a1.append(ch[1])
