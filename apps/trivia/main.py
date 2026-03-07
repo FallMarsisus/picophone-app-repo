@@ -205,13 +205,13 @@ def shuf(arr):
         arr[j] = tmp
         i = i - 1
 
-# ---- Screen ----
+# ======== SCREEN ========
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(COL_BG, 0)
 
-# ---- Home button (same pattern as Wordle) ----
+# ---- Home button (exact Wordle pattern: create, def cb, wire) ----
 
 hb = lv.btn(scr)
 hb.set_size(60, 28)
@@ -237,21 +237,17 @@ def oh(evt):
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
-# ---- Title ----
+# ---- Labels ----
 
 tl = lv.label(scr)
 tl.set_text("Trivia Quiz")
 tl.set_style_text_color(COL_TX, 0)
 tl.align(lv.ALIGN.TOP_MID, 0, 6)
 
-# ---- Score label ----
-
 slbl = lv.label(scr)
 slbl.set_text("")
 slbl.set_style_text_color(COL_DM, 0)
 slbl.align(lv.ALIGN.TOP_RIGHT, -8, 8)
-
-# ---- Category label ----
 
 clbl = lv.label(scr)
 clbl.set_text("")
@@ -273,36 +269,14 @@ qlbl.set_text("")
 qlbl.set_style_text_color(COL_TX, 0)
 qlbl.align(lv.ALIGN.TOP_LEFT, 10, 8)
 
-# ---- Answer buttons (plain lv.btn like dummy app) ----
-
-abtns = []
-albls = []
-ai = 0
-while ai < 4:
-    by = 154 + ai * 56
-    ab = lv.btn(scr)
-    ab.set_size(296, 48)
-    ab.align(lv.ALIGN.TOP_LEFT, 12, by)
-    ab.set_style_bg_color(COL_AC, 0)
-    ab.set_style_radius(10, 0)
-    ab.set_style_border_color(COL_DM, 0)
-    ab.set_style_border_width(1, 0)
-    alb = lv.label(ab)
-    alb.set_text("")
-    alb.set_style_text_color(COL_TX, 0)
-    alb.center()
-    abtns.append(ab)
-    albls.append(alb)
-    ai = ai + 1
-
-# ---- Feedback ----
+# ---- Feedback label ----
 
 fblbl = lv.label(scr)
 fblbl.set_text("")
 fblbl.set_style_text_color(COL_TX, 0)
 fblbl.align(lv.ALIGN.TOP_MID, 0, 382)
 
-# ---- Next button ----
+# ---- Next button (created now, wired after game functions) ----
 
 nbtn = lv.btn(scr)
 nbtn.set_size(140, 40)
@@ -315,7 +289,7 @@ nlbl.set_text("Suivant >")
 nlbl.set_style_text_color(COL_TX, 0)
 nlbl.center()
 
-# ---- Menu ----
+# ---- Menu container ----
 
 mnu = lv.obj(scr)
 mnu.set_size(SCR_W, SCR_H)
@@ -323,7 +297,6 @@ mnu.align(lv.ALIGN.TOP_LEFT, 0, 0)
 mnu.set_style_bg_color(COL_BG, 0)
 mnu.set_style_border_width(0, 0)
 mnu.clear_flag(lv.obj.FLAG.SCROLLABLE)
-hb.move_foreground()
 
 mtl = lv.label(mnu)
 mtl.set_text("Trivia Quiz")
@@ -335,102 +308,57 @@ msl.set_text("Choisis une categorie :")
 msl.set_style_text_color(COL_DM, 0)
 msl.align(lv.ALIGN.TOP_MID, 0, 70)
 
-# ---- Category buttons ----
-
-mcbs = []
-ci = 0
-while ci < 8:
-    col = ci % 2
-    row = ci // 2
-    cx = 42 + col * 148
-    cy = 100 + row * 44
-    txt = cnms[ci]
-    cb = lv.btn(mnu)
-    cb.set_size(130, 36)
-    cb.align(lv.ALIGN.TOP_LEFT, cx, cy)
-    cb.set_style_bg_color(COL_AC, 0)
-    cb.set_style_radius(8, 0)
-    cb.set_style_border_color(COL_HL, 0)
-    cb.set_style_border_width(1, 0)
-    clb = lv.label(cb)
-    clb.set_text(txt)
-    clb.set_style_text_color(COL_TX, 0)
-    clb.center()
-    mcbs.append(cb)
-    ci = ci + 1
-
-# ---- Difficulty ----
-
 ddl = lv.label(mnu)
 ddl.set_text("Difficulte :")
 ddl.set_style_text_color(COL_DM, 0)
 ddl.align(lv.ALIGN.TOP_MID, 0, 282)
 
+# ---- Empty arrays (populated later, used by game functions at runtime) ----
+
+abtns = []
+albls = []
+mcbs = []
 dbs = []
-di = 0
-while di < 3:
-    dx = 18 + di * 98
-    txt = dnms[di]
-    dbt = lv.btn(mnu)
-    dbt.set_size(90, 34)
-    dbt.align(lv.ALIGN.TOP_LEFT, dx, 306)
-    dbt.set_style_radius(8, 0)
-    dbt.set_style_border_width(1, 0)
-    if di == 0:
-        dbt.set_style_bg_color(COL_HL, 0)
-        dbt.set_style_border_color(COL_OK, 0)
-    else:
-        dbt.set_style_bg_color(COL_AC, 0)
-        dbt.set_style_border_color(COL_HL, 0)
-    dlb = lv.label(dbt)
-    dlb.set_text(txt)
-    dlb.set_style_text_color(COL_TX, 0)
-    dlb.center()
-    dbs.append(dbt)
-    di = di + 1
 
-# ---- Play button ----
-
-pbtn = lv.btn(mnu)
-pbtn.set_size(200, 46)
-pbtn.align(lv.ALIGN.TOP_LEFT, 60, 366)
-pbtn.set_style_bg_color(COL_OK, 0)
-pbtn.set_style_radius(10, 0)
-plbl = lv.label(pbtn)
-plbl.set_text("Jouer !")
-plbl.set_style_text_color(COL_TX, 0)
-plbl.center()
-
-# ==== GAME FUNCTIONS (all UI vars exist above) ====
+# ======== GAME FUNCTIONS ========
 
 def sel_cat(idx):
     global cid
     cid = cids[idx]
     i = 0
     while i < 8:
-        mcbs[i].set_style_bg_color(COL_AC, 0)
-        mcbs[i].set_style_border_color(COL_HL, 0)
+        b = mcbs[i]
+        b.set_style_bg_color(COL_AC, 0)
+        b.set_style_border_color(COL_HL, 0)
         i = i + 1
-    mcbs[idx].set_style_bg_color(COL_HL, 0)
-    mcbs[idx].set_style_border_color(COL_OK, 0)
+    b = mcbs[idx]
+    b.set_style_bg_color(COL_HL, 0)
+    b.set_style_border_color(COL_OK, 0)
 
 def sel_dif(idx):
     global dif
     dif = dstrs[idx]
     i = 0
     while i < 3:
-        dbs[i].set_style_bg_color(COL_AC, 0)
-        dbs[i].set_style_border_color(COL_HL, 0)
+        b = dbs[i]
+        b.set_style_bg_color(COL_AC, 0)
+        b.set_style_border_color(COL_HL, 0)
         i = i + 1
-    dbs[idx].set_style_bg_color(COL_HL, 0)
-    dbs[idx].set_style_border_color(COL_OK, 0)
+    b = dbs[idx]
+    b.set_style_bg_color(COL_HL, 0)
+    b.set_style_border_color(COL_OK, 0)
 
 def sm():
+    global ebox
+    if ebox != 0:
+        ebox._del()
+        ebox = 0
     mnu.clear_flag(lv.obj.FLAG.HIDDEN)
     hb.move_foreground()
     i = 0
     while i < 4:
-        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+        b = abtns[i]
+        b.add_flag(lv.obj.FLAG.HIDDEN)
         i = i + 1
     qbox.add_flag(lv.obj.FLAG.HIDDEN)
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
@@ -444,7 +372,8 @@ def sv():
     hb.move_foreground()
     i = 0
     while i < 4:
-        abtns[i].clear_flag(lv.obj.FLAG.HIDDEN)
+        b = abtns[i]
+        b.clear_flag(lv.obj.FLAG.HIDDEN)
         i = i + 1
     qbox.clear_flag(lv.obj.FLAG.HIDDEN)
 
@@ -464,11 +393,15 @@ def ca(idx):
     j = 0
     while j < 4:
         if ci == j:
-            abtns[j].set_style_bg_color(COL_OK, 0)
-            albls[j].set_style_text_color(COL_TX, 0)
+            b = abtns[j]
+            b.set_style_bg_color(COL_OK, 0)
+            al = albls[j]
+            al.set_style_text_color(COL_TX, 0)
         elif idx == j:
-            abtns[j].set_style_bg_color(COL_NO, 0)
-            albls[j].set_style_text_color(COL_TX, 0)
+            b = abtns[j]
+            b.set_style_bg_color(COL_NO, 0)
+            al = albls[j]
+            al.set_style_text_color(COL_TX, 0)
         j = j + 1
     nbtn.clear_flag(lv.obj.FLAG.HIDDEN)
 
@@ -490,16 +423,26 @@ def shq():
     slbl.set_text(stxt)
     fblbl.set_text("")
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
-    albls[0].set_text(q_a0[qi])
-    albls[1].set_text(q_a1[qi])
-    albls[2].set_text(q_a2[qi])
-    albls[3].set_text(q_a3[qi])
+    t = q_a0[qi]
+    a = albls[0]
+    a.set_text(t)
+    t = q_a1[qi]
+    a = albls[1]
+    a.set_text(t)
+    t = q_a2[qi]
+    a = albls[2]
+    a.set_text(t)
+    t = q_a3[qi]
+    a = albls[3]
+    a.set_text(t)
     i = 0
     while i < 4:
-        abtns[i].clear_flag(lv.obj.FLAG.HIDDEN)
-        abtns[i].set_style_bg_color(COL_AC, 0)
-        abtns[i].set_style_border_color(COL_DM, 0)
-        albls[i].set_style_text_color(COL_TX, 0)
+        b = abtns[i]
+        b.clear_flag(lv.obj.FLAG.HIDDEN)
+        b.set_style_bg_color(COL_AC, 0)
+        b.set_style_border_color(COL_DM, 0)
+        al = albls[i]
+        al.set_style_text_color(COL_TX, 0)
         i = i + 1
 
 def nxt():
@@ -517,7 +460,8 @@ def se():
     global ebox
     i = 0
     while i < 4:
-        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+        b = abtns[i]
+        b.add_flag(lv.obj.FLAG.HIDDEN)
         i = i + 1
     qbox.add_flag(lv.obj.FLAG.HIDDEN)
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
@@ -686,8 +630,9 @@ def sg():
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
     i = 0
     while i < 4:
-        abtns[i].set_style_bg_color(COL_AC, 0)
-        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+        b = abtns[i]
+        b.set_style_bg_color(COL_AC, 0)
+        b.add_flag(lv.obj.FLAG.HIDDEN)
         i = i + 1
     if ft != 0:
         ft._del()
@@ -696,7 +641,9 @@ def sg():
     ft.set_period(100)
     ft.set_cb(df)
 
-# ==== CALLBACKS (all game functions exist above) ====
+# ======== CREATE BUTTONS + WIRE CALLBACKS (Wordle pattern) ========
+
+# ---- Answer buttons: def callback, create btn, wire immediately ----
 
 def oa0(evt):
     ca(0)
@@ -710,15 +657,74 @@ def oa2(evt):
 def oa3(evt):
     ca(3)
 
-abtns[0].add_event_cb(oa0, lv.EVENT.CLICKED, 0)
-abtns[1].add_event_cb(oa1, lv.EVENT.CLICKED, 0)
-abtns[2].add_event_cb(oa2, lv.EVENT.CLICKED, 0)
-abtns[3].add_event_cb(oa3, lv.EVENT.CLICKED, 0)
+ab = lv.btn(scr)
+ab.set_size(296, 48)
+ab.align(lv.ALIGN.TOP_LEFT, 12, 154)
+ab.set_style_bg_color(COL_AC, 0)
+ab.set_style_radius(10, 0)
+ab.set_style_border_color(COL_DM, 0)
+ab.set_style_border_width(1, 0)
+ab.add_event_cb(oa0, lv.EVENT.CLICKED, 0)
+al = lv.label(ab)
+al.set_text("")
+al.set_style_text_color(COL_TX, 0)
+al.center()
+abtns.append(ab)
+albls.append(al)
+
+ab = lv.btn(scr)
+ab.set_size(296, 48)
+ab.align(lv.ALIGN.TOP_LEFT, 12, 210)
+ab.set_style_bg_color(COL_AC, 0)
+ab.set_style_radius(10, 0)
+ab.set_style_border_color(COL_DM, 0)
+ab.set_style_border_width(1, 0)
+ab.add_event_cb(oa1, lv.EVENT.CLICKED, 0)
+al = lv.label(ab)
+al.set_text("")
+al.set_style_text_color(COL_TX, 0)
+al.center()
+abtns.append(ab)
+albls.append(al)
+
+ab = lv.btn(scr)
+ab.set_size(296, 48)
+ab.align(lv.ALIGN.TOP_LEFT, 12, 266)
+ab.set_style_bg_color(COL_AC, 0)
+ab.set_style_radius(10, 0)
+ab.set_style_border_color(COL_DM, 0)
+ab.set_style_border_width(1, 0)
+ab.add_event_cb(oa2, lv.EVENT.CLICKED, 0)
+al = lv.label(ab)
+al.set_text("")
+al.set_style_text_color(COL_TX, 0)
+al.center()
+abtns.append(ab)
+albls.append(al)
+
+ab = lv.btn(scr)
+ab.set_size(296, 48)
+ab.align(lv.ALIGN.TOP_LEFT, 12, 322)
+ab.set_style_bg_color(COL_AC, 0)
+ab.set_style_radius(10, 0)
+ab.set_style_border_color(COL_DM, 0)
+ab.set_style_border_width(1, 0)
+ab.add_event_cb(oa3, lv.EVENT.CLICKED, 0)
+al = lv.label(ab)
+al.set_text("")
+al.set_style_text_color(COL_TX, 0)
+al.center()
+abtns.append(ab)
+albls.append(al)
+
+# ---- Next button wiring ----
 
 def onx(evt):
     nxt()
 
 nbtn.add_event_cb(onx, lv.EVENT.CLICKED, 0)
+
+# ---- Category buttons: def callbacks, create each, wire immediately ----
 
 def oc0(evt):
     sel_cat(0)
@@ -744,14 +750,119 @@ def oc6(evt):
 def oc7(evt):
     sel_cat(7)
 
-mcbs[0].add_event_cb(oc0, lv.EVENT.CLICKED, 0)
-mcbs[1].add_event_cb(oc1, lv.EVENT.CLICKED, 0)
-mcbs[2].add_event_cb(oc2, lv.EVENT.CLICKED, 0)
-mcbs[3].add_event_cb(oc3, lv.EVENT.CLICKED, 0)
-mcbs[4].add_event_cb(oc4, lv.EVENT.CLICKED, 0)
-mcbs[5].add_event_cb(oc5, lv.EVENT.CLICKED, 0)
-mcbs[6].add_event_cb(oc6, lv.EVENT.CLICKED, 0)
-mcbs[7].add_event_cb(oc7, lv.EVENT.CLICKED, 0)
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 42, 100)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc0, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Culture G.")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 190, 100)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc1, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Sciences")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 42, 144)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc2, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Sports")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 190, 144)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc3, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Histoire")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 42, 188)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc4, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Cinema")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 190, 188)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc5, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Musique")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 42, 232)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc6, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Jeux Video")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+cb = lv.btn(mnu)
+cb.set_size(130, 36)
+cb.align(lv.ALIGN.TOP_LEFT, 190, 232)
+cb.set_style_bg_color(COL_AC, 0)
+cb.set_style_radius(8, 0)
+cb.set_style_border_color(COL_HL, 0)
+cb.set_style_border_width(1, 0)
+cb.add_event_cb(oc7, lv.EVENT.CLICKED, 0)
+cl = lv.label(cb)
+cl.set_text("Informatique")
+cl.set_style_text_color(COL_TX, 0)
+cl.center()
+mcbs.append(cb)
+
+# ---- Difficulty buttons ----
 
 def od0(evt):
     sel_dif(0)
@@ -762,15 +873,65 @@ def od1(evt):
 def od2(evt):
     sel_dif(2)
 
-dbs[0].add_event_cb(od0, lv.EVENT.CLICKED, 0)
-dbs[1].add_event_cb(od1, lv.EVENT.CLICKED, 0)
-dbs[2].add_event_cb(od2, lv.EVENT.CLICKED, 0)
+db = lv.btn(mnu)
+db.set_size(90, 34)
+db.align(lv.ALIGN.TOP_LEFT, 18, 306)
+db.set_style_bg_color(COL_HL, 0)
+db.set_style_radius(8, 0)
+db.set_style_border_color(COL_OK, 0)
+db.set_style_border_width(1, 0)
+db.add_event_cb(od0, lv.EVENT.CLICKED, 0)
+dl = lv.label(db)
+dl.set_text("Facile")
+dl.set_style_text_color(COL_TX, 0)
+dl.center()
+dbs.append(db)
+
+db = lv.btn(mnu)
+db.set_size(90, 34)
+db.align(lv.ALIGN.TOP_LEFT, 116, 306)
+db.set_style_bg_color(COL_AC, 0)
+db.set_style_radius(8, 0)
+db.set_style_border_color(COL_HL, 0)
+db.set_style_border_width(1, 0)
+db.add_event_cb(od1, lv.EVENT.CLICKED, 0)
+dl = lv.label(db)
+dl.set_text("Moyen")
+dl.set_style_text_color(COL_TX, 0)
+dl.center()
+dbs.append(db)
+
+db = lv.btn(mnu)
+db.set_size(90, 34)
+db.align(lv.ALIGN.TOP_LEFT, 214, 306)
+db.set_style_bg_color(COL_AC, 0)
+db.set_style_radius(8, 0)
+db.set_style_border_color(COL_HL, 0)
+db.set_style_border_width(1, 0)
+db.add_event_cb(od2, lv.EVENT.CLICKED, 0)
+dl = lv.label(db)
+dl.set_text("Difficile")
+dl.set_style_text_color(COL_TX, 0)
+dl.center()
+dbs.append(db)
+
+# ---- Play button ----
 
 def op(evt):
     sg()
 
+pbtn = lv.btn(mnu)
+pbtn.set_size(200, 46)
+pbtn.align(lv.ALIGN.TOP_LEFT, 60, 366)
+pbtn.set_style_bg_color(COL_OK, 0)
+pbtn.set_style_radius(10, 0)
 pbtn.add_event_cb(op, lv.EVENT.CLICKED, 0)
+plbl = lv.label(pbtn)
+plbl.set_text("Jouer !")
+plbl.set_style_text_color(COL_TX, 0)
+plbl.center()
 
-# ==== START ====
+# ======== START ========
 
+hb.move_foreground()
 sm()
