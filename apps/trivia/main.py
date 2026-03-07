@@ -35,6 +35,8 @@ cnms = ["Culture G.", "Sciences", "Sports", "Histoire", "Cinema", "Musique", "Je
 dstrs = ["easy", "medium", "hard"]
 dnms = ["Facile", "Moyen", "Difficile"]
 
+# ---- HTML decode ----
+
 def dhtml(s):
     o = ""
     i = 0
@@ -73,6 +75,8 @@ def dhtml(s):
             o = o + s[i]
             i = i + 1
     return o
+
+# ---- JSON parser ----
 
 _js = ""
 _jp = 0
@@ -125,27 +129,27 @@ def _jval():
     _jw()
     if _jp >= len(_js):
         return ""
-    ch = _js[_jp]
-    if ch == '"':
+    c = _js[_jp]
+    if c == '"':
         return _jstr()
-    if ch == '{':
-        return _jobj()
-    if ch == '[':
+    if c == '[':
         return _jarr()
-    if ch == 't':
+    if c == 't':
         _jp = _jp + 4
         return True
-    if ch == 'f':
+    if c == 'f':
         _jp = _jp + 5
         return False
-    if ch == 'n':
+    if c == 'n':
         _jp = _jp + 4
         return ""
+    if c == '{':
+        return _jobj()
     return _jnum()
 
 def _jobj():
     global _jp
-    obj = {}
+    obj = dict()
     _jp = _jp + 1
     _jw()
     if _jp < len(_js) and _js[_jp] == '}':
@@ -191,6 +195,8 @@ def jparse(s):
     _jp = 0
     return _jval()
 
+# ---- PRNG ----
+
 def _rnd():
     global _rs
     _rs = (_rs * 1103515245 + 12345) % 2147483648
@@ -205,6 +211,22 @@ def shuf(arr):
         arr[i] = arr[j]
         arr[j] = tmp
         i = i - 1
+
+# ---- Home timer ----
+
+def dq(t):
+    global qt
+    t._del()
+    qt = 0
+    lv.go_home()
+
+def oh(evt):
+    global qt
+    qt = lv.timer_create_basic()
+    qt.set_period(60)
+    qt.set_cb(dq)
+
+# ---- Game logic ----
 
 def sel_cat(idx):
     global cid
@@ -294,12 +316,38 @@ def se():
     em.set_text(msg)
     em.set_style_text_color(COL_DM, 0)
     em.align(lv.ALIGN.TOP_MID, 0, 76)
-    rb = TBtn(eb, "Rejouer", 10, 150, 110, 36, "replay", 0)
-    rb.btn.set_style_bg_color(COL_OK, 0)
-    rb.btn.set_style_radius(8, 0)
-    mb = TBtn(eb, "Menu", 140, 150, 110, 36, "menu", 0)
-    mb.btn.set_style_bg_color(COL_HL, 0)
-    mb.btn.set_style_radius(8, 0)
+    rb = lv.btn(eb)
+    rb.set_size(110, 36)
+    rb.align(lv.ALIGN.TOP_LEFT, 10, 150)
+    rb.set_style_bg_color(COL_OK, 0)
+    rb.set_style_radius(8, 0)
+    rl = lv.label(rb)
+    rl.set_text("Rejouer")
+    rl.set_style_text_color(COL_TX, 0)
+    rl.center()
+    def on_rep(evt):
+        global ebox
+        if ebox != 0:
+            ebox._del()
+            ebox = 0
+        sg()
+    rb.add_event_cb(on_rep, lv.EVENT.CLICKED, 0)
+    mb = lv.btn(eb)
+    mb.set_size(110, 36)
+    mb.align(lv.ALIGN.TOP_LEFT, 140, 150)
+    mb.set_style_bg_color(COL_HL, 0)
+    mb.set_style_radius(8, 0)
+    ml = lv.label(mb)
+    ml.set_text("Menu")
+    ml.set_style_text_color(COL_TX, 0)
+    ml.center()
+    def on_mnu(evt):
+        global ebox
+        if ebox != 0:
+            ebox._del()
+            ebox = 0
+        sm()
+    mb.add_event_cb(on_mnu, lv.EVENT.CLICKED, 0)
 
 def shq():
     global aok
@@ -399,10 +447,10 @@ def df(t):
         ri = ri + 1
         if r:
             rq = r["question"]
-            rc = r["correct_answer"]
+            ra = r["correct_answer"]
             inc = r["incorrect_answers"]
             q = dhtml(rq)
-            cor = dhtml(rc)
+            cor = dhtml(ra)
             if q and cor and len(inc) >= 3:
                 t0 = inc[0]
                 t1 = inc[1]
@@ -457,27 +505,15 @@ def sg():
     ft.set_period(100)
     ft.set_cb(df)
 
-def do_replay():
-    global ebox
-    if ebox != 0:
-        ebox._del()
-        ebox = 0
-    sg()
-
-def do_menu():
-    global ebox
-    if ebox != 0:
-        ebox._del()
-        ebox = 0
-    sm()
+# ---- Button class (same as Wordle K) ----
 
 class TBtn:
-    def __init__(self, parent, text, x, y, w, h, kind, idx):
-        b = lv.btn(parent)
+    def __init__(self, p, t, x, y, w, h, kind, idx):
+        b = lv.btn(p)
         b.set_size(w, h)
         b.align(lv.ALIGN.TOP_LEFT, x, y)
         l = lv.label(b)
-        l.set_text(text)
+        l.set_text(t)
         l.set_style_text_color(COL_TX, 0)
         l.center()
         self.btn = b
@@ -500,33 +536,24 @@ class TBtn:
             nxt()
         elif self.kind == "play":
             sg()
-        elif self.kind == "replay":
-            do_replay()
-        elif self.kind == "menu":
-            do_menu()
+
+# ---- UI (like Wordle) ----
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(COL_BG, 0)
 
-_h = TBtn(scr, "< Home", 4, 4, 60, 28, "home", 0)
-hb = _h.btn
+# Home button (like Wordle: plain lv.btn, not class)
+hb = lv.btn(scr)
+hb.set_size(60, 28)
+hb.align(lv.ALIGN.TOP_LEFT, 4, 4)
 hb.set_style_bg_color(COL_AC, 0)
 hb.set_style_radius(6, 0)
-
-qt = 0
-
-def dq(t):
-    global qt
-    t._del()
-    qt = 0
-    lv.go_home()
-
-def oh(evt):
-    global qt
-    qt = lv.timer_create_basic()
-    qt.set_period(60)
-    qt.set_cb(dq)
+hl = lv.label(hb)
+hl.set_text("< Home")
+hl.set_style_text_color(COL_TX, 0)
+hl.center()
+hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
 tl = lv.label(scr)
 tl.set_text("Trivia Quiz")
@@ -623,16 +650,16 @@ dbs = []
 di = 0
 while di < 3:
     dx = 18 + di * 98
-    do = TBtn(mnu, dnms[di], dx, 306, 90, 34, "dif", di)
-    do.btn.set_style_radius(8, 0)
-    do.btn.set_style_border_width(1, 0)
+    db = TBtn(mnu, dnms[di], dx, 306, 90, 34, "dif", di)
+    db.btn.set_style_radius(8, 0)
+    db.btn.set_style_border_width(1, 0)
     if di == 0:
-        do.btn.set_style_bg_color(COL_HL, 0)
-        do.btn.set_style_border_color(COL_OK, 0)
+        db.btn.set_style_bg_color(COL_HL, 0)
+        db.btn.set_style_border_color(COL_OK, 0)
     else:
-        do.btn.set_style_bg_color(COL_AC, 0)
-        do.btn.set_style_border_color(COL_HL, 0)
-    dbs.append(do.btn)
+        db.btn.set_style_bg_color(COL_AC, 0)
+        db.btn.set_style_border_color(COL_HL, 0)
+    dbs.append(db.btn)
     di = di + 1
 
 _p = TBtn(mnu, "Jouer !", 60, 366, 200, 46, "play", 0)
