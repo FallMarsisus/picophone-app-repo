@@ -25,8 +25,17 @@ game_over = False
 tile_labels = []
 tile_btn_rows = []
 key_btns = []
-kbd_queue = []
-kbd_idx = 0
+kq0 = ""
+kq1 = ""
+kq2 = ""
+kq3 = ""
+kq4 = ""
+ks0 = 0
+ks1 = 0
+ks2 = 0
+ks3 = 0
+ks4 = 0
+kbd_phase = 0
 kbd_timer = 0
 
 scr = lv.scr_act()
@@ -67,42 +76,51 @@ def delete_letter():
     guess[current_col] = ""
     tile_labels[current_row][current_col].set_text(" ")
 
-def color_one_tile(btn, lbl, letter, c):
-    lbl.set_text(letter)
-    if c == 2:
+def kbd_color_one(btn, st):
+    if st == 3:
         btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    elif c == 1:
+    elif st == 2:
         btn.set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
     else:
         btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
     btn.set_style_text_color(lv.color_white(), 0)
 
 def kbd_color_step(t):
-    global kbd_timer, kbd_idx
-    if kbd_idx < 5:
-        item = kbd_queue[kbd_idx]
-        kbd_idx = kbd_idx + 1
-        letter = item[0]
-        ns = item[1]
-        for i in range(NUM_KEYS):
-            kb = key_btns[i]
-            if kb.text == letter:
-                if ns > kb.state:
-                    kb.state = ns
-                    if ns == 3:
-                        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-                    elif ns == 2:
-                        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
-                    else:
-                        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
-                    kb.btn.set_style_text_color(lv.color_white(), 0)
-                break
+    global kbd_timer, kbd_phase
+    letter = ""
+    ns = 0
+    if kbd_phase == 0:
+        letter = kq0
+        ns = ks0
+    elif kbd_phase == 1:
+        letter = kq1
+        ns = ks1
+    elif kbd_phase == 2:
+        letter = kq2
+        ns = ks2
+    elif kbd_phase == 3:
+        letter = kq3
+        ns = ks3
+    elif kbd_phase == 4:
+        letter = kq4
+        ns = ks4
     else:
         t._del()
         kbd_timer = 0
+        return
+    kbd_phase = kbd_phase + 1
+    for i in range(NUM_KEYS):
+        kb = key_btns[i]
+        if kb.text == letter:
+            if ns > kb.state:
+                kb.state = ns
+                kbd_color_one(kb.btn, ns)
+            break
 
 def submit_guess():
-    global current_row, current_col, game_over, kbd_queue, kbd_idx, kbd_timer
+    global current_row, current_col, game_over
+    global kq0, kq1, kq2, kq3, kq4, ks0, ks1, ks2, ks3, ks4
+    global kbd_phase, kbd_timer
     if current_col < WORD_LEN:
         status_lbl.set_text("5 lettres!")
         return
@@ -218,19 +236,63 @@ def submit_guess():
             c4 = 1
         elif r4 == g4:
             c4 = 1
-    # Apply colors to tiles
+    # Apply colors to tiles - fully inline, no function calls
     row_lbl = tile_labels[current_row]
     row_btn = tile_btn_rows[current_row]
-    color_one_tile(row_btn[0], row_lbl[0], guess[0], c0)
-    color_one_tile(row_btn[1], row_lbl[1], guess[1], c1)
-    color_one_tile(row_btn[2], row_lbl[2], guess[2], c2)
-    color_one_tile(row_btn[3], row_lbl[3], guess[3], c3)
-    color_one_tile(row_btn[4], row_lbl[4], guess[4], c4)
-    # Deferred keyboard coloring (one key per timer tick)
-    kbd_queue = [[guess[0], c0 + 1], [guess[1], c1 + 1], [guess[2], c2 + 1], [guess[3], c3 + 1], [guess[4], c4 + 1]]
-    kbd_idx = 0
+    row_lbl[0].set_text(guess[0])
+    if c0 == 2:
+        row_btn[0].set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    elif c0 == 1:
+        row_btn[0].set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+    else:
+        row_btn[0].set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+    row_btn[0].set_style_text_color(lv.color_white(), 0)
+    row_lbl[1].set_text(guess[1])
+    if c1 == 2:
+        row_btn[1].set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    elif c1 == 1:
+        row_btn[1].set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+    else:
+        row_btn[1].set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+    row_btn[1].set_style_text_color(lv.color_white(), 0)
+    row_lbl[2].set_text(guess[2])
+    if c2 == 2:
+        row_btn[2].set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    elif c2 == 1:
+        row_btn[2].set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+    else:
+        row_btn[2].set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+    row_btn[2].set_style_text_color(lv.color_white(), 0)
+    row_lbl[3].set_text(guess[3])
+    if c3 == 2:
+        row_btn[3].set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    elif c3 == 1:
+        row_btn[3].set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+    else:
+        row_btn[3].set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+    row_btn[3].set_style_text_color(lv.color_white(), 0)
+    row_lbl[4].set_text(guess[4])
+    if c4 == 2:
+        row_btn[4].set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    elif c4 == 1:
+        row_btn[4].set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+    else:
+        row_btn[4].set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+    row_btn[4].set_style_text_color(lv.color_white(), 0)
+    # Store kbd coloring data in simple globals (no lists)
+    kq0 = guess[0]
+    kq1 = guess[1]
+    kq2 = guess[2]
+    kq3 = guess[3]
+    kq4 = guess[4]
+    ks0 = c0 + 1
+    ks1 = c1 + 1
+    ks2 = c2 + 1
+    ks3 = c3 + 1
+    ks4 = c4 + 1
+    kbd_phase = 0
     kbd_timer = lv.timer_create_basic()
-    kbd_timer.set_period(50)
+    kbd_timer.set_period(80)
     kbd_timer.set_cb(kbd_color_step)
     # Win check
     if c0 == 2 and c1 == 2 and c2 == 2 and c3 == 2 and c4 == 2:
