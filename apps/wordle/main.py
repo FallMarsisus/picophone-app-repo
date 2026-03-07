@@ -35,13 +35,16 @@ ktmr = 0
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
+scr.set_style_bg_color(lv.color_hex(0x121213), 0)
 
 tl = lv.label(scr)
 tl.set_text("WORDLE")
+tl.set_style_text_color(lv.color_white(), 0)
 tl.align(lv.ALIGN.TOP_MID, 0, 8)
 
 sl = lv.label(scr)
 sl.set_text("")
+sl.set_style_text_color(lv.color_hex(0xAAAAAA), 0)
 sl.align(lv.ALIGN.TOP_MID, 0, 28)
 
 def upc(ch):
@@ -74,13 +77,15 @@ def ct(b, l, le, c):
     if c == 2:
         b.set_style_bg_color(
             lv.palette_main(lv.PALETTE.GREEN), 0)
+        b.set_style_text_color(lv.color_white(), 0)
     elif c == 1:
         b.set_style_bg_color(
             lv.palette_main(lv.PALETTE.YELLOW), 0)
+        b.set_style_text_color(lv.color_black(), 0)
     else:
         b.set_style_bg_color(
             lv.palette_main(lv.PALETTE.GREY), 0)
-    b.set_style_text_color(lv.color_white(), 0)
+        b.set_style_text_color(lv.color_white(), 0)
 
 def kcs(t):
     global ktmr, kph
@@ -169,6 +174,7 @@ def sg():
     if w:
         sl.set_text("Bravo!")
         gover = True
+        show_replay("Bravo!")
         return
     crow = crow + 1
     ccol = 0
@@ -178,18 +184,96 @@ def sg():
     guess[3] = ""
     guess[4] = ""
     if crow >= MAX_ROWS:
-        sl.set_text("Perdu!")
+        ans = target[0]+target[1]+target[2]+target[3]+target[4]
+        sl.set_text(ans)
         gover = True
+        show_replay("Le mot etait : " + ans)
     else:
         sl.set_text(str(crow + 1) + "/" + str(MAX_ROWS))
+
+def show_replay(msg):
+    mbox = lv.obj(scr)
+    mbox.set_size(240, 140)
+    mbox.center()
+    mbox.set_style_bg_color(lv.color_hex(0x1A1A1B), 0)
+    mbox.set_style_border_color(lv.color_hex(0x565758), 0)
+    mbox.set_style_border_width(2, 0)
+    mbox.set_style_radius(12, 0)
+    mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
+    ml = lv.label(mbox)
+    ml.set_text(msg)
+    ml.set_style_text_color(lv.color_white(), 0)
+    ml.align(lv.ALIGN.TOP_MID, 0, 18)
+    rb = lv.btn(mbox)
+    rb.set_size(120, 36)
+    rb.align(lv.ALIGN.BOTTOM_MID, 0, -16)
+    rb.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    rb.set_style_radius(8, 0)
+    rl = lv.label(rb)
+    rl.set_text("Rejouer")
+    rl.set_style_text_color(lv.color_white(), 0)
+    rl.center()
+    def on_replay(evt):
+        mbox._del()
+        new_game()
+    rb.add_event_cb(on_replay, lv.EVENT.CLICKED, None)
+
+def new_game():
+    global crow, ccol, gover, target
+    global kq0, kq1, kq2, kq3, kq4
+    global ks0, ks1, ks2, ks3, ks4
+    global kph, ktmr
+    crow = 0
+    ccol = 0
+    gover = False
+    for i in range(5):
+        guess[i] = ""
+    for row in range(MAX_ROWS):
+        for col in range(WORD_LEN):
+            tbtn[row][col].set_style_bg_color(
+                lv.color_hex(0x3A3A3C), 0)
+            tbtn[row][col].set_style_border_color(
+                lv.color_hex(0x565758), 0)
+            tlbl[row][col].set_text(" ")
+            tlbl[row][col].set_style_text_color(
+                lv.color_white(), 0)
+    for i in range(NK):
+        kb = kbtns[i]
+        kb.state = 0
+        kb.btn.set_style_bg_color(
+            lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+        kb.btn.set_style_text_color(lv.color_white(), 0)
+        kb.lbl.set_style_text_color(lv.color_white(), 0)
+    kq0 = ""
+    kq1 = ""
+    kq2 = ""
+    kq3 = ""
+    kq4 = ""
+    ks0 = 0
+    ks1 = 0
+    ks2 = 0
+    ks3 = 0
+    ks4 = 0
+    kph = 0
+    if ktmr != 0:
+        ktmr._del()
+        ktmr = 0
+    sl.set_text("")
+    wt2 = lv.timer_create_basic()
+    wt2.set_period(100)
+    wt2.set_cb(lw)
 
 class K:
     def __init__(self, p, t, x, y, w, h):
         b = lv.btn(p)
         b.set_size(w, h)
         b.align(lv.ALIGN.TOP_LEFT, x, y)
+        b.set_style_bg_color(
+            lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+        b.set_style_radius(4, 0)
         l = lv.label(b)
         l.set_text(t)
+        l.set_style_text_color(lv.color_white(), 0)
         l.center()
         self.btn = b
         self.lbl = l
@@ -238,9 +322,14 @@ for row in range(MAX_ROWS):
         tx = GX + col * (TS + TG)
         ty = GY + row * (TS + TG)
         ti.align(lv.ALIGN.TOP_LEFT, tx, ty)
+        ti.set_style_bg_color(lv.color_hex(0x3A3A3C), 0)
+        ti.set_style_border_color(lv.color_hex(0x565758), 0)
+        ti.set_style_border_width(2, 0)
+        ti.set_style_radius(4, 0)
         rb.append(ti)
         lb = lv.label(ti)
         lb.set_text(" ")
+        lb.set_style_text_color(lv.color_white(), 0)
         lb.center()
         rl.append(lb)
     tlbl.append(rl)
