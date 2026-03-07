@@ -428,7 +428,7 @@ play_lbl.center()
 
 # ─── Category selection logic ─────────────────────────────
 def make_cat_cb(idx):
-    def cb(evt):
+    def cb(evt, idx=idx):
         global cat_id
         cat_id = cats[idx][0]
         for ci2 in range(len(cats)):
@@ -450,7 +450,7 @@ for ci in range(len(cats)):
 
 # ─── Difficulty selection logic ───────────────────────────
 def make_diff_cb(idx):
-    def cb(evt):
+    def cb(evt, idx=idx):
         global diff_str
         diff_str = diffs[idx]
         for di2 in range(3):
@@ -514,7 +514,7 @@ def show_question():
 
 # ─── Handle answer click ─────────────────────────────────
 def make_ans_cb(idx):
-    def cb(evt):
+    def cb(evt, idx=idx):
         global answered, score
         if answered:
             return
@@ -633,7 +633,7 @@ def show_end():
 
 # ─── Fetch & start game ──────────────────────────────────
 def fetch_questions(t):
-    global questions, qidx, score, total, fetch_timer
+    global questions, qidx, score, total, fetch_timer, _rseed
     if t:
         t._del()
     fetch_timer = 0
@@ -641,15 +641,94 @@ def fetch_questions(t):
     url = url + "&category=" + str(cat_id)
     url = url + "&difficulty=" + diff_str
     url = url + "&type=multiple"
+    
+    questions = []
     raw = lv.http_get(url)
-    if raw:
-        questions = parse_questions(raw)
-    else:
-        questions = []
-    if len(questions) == 0:
-        q_lbl.set_text("Erreur de chargement.\nVerifie le WiFi.")
+    
+    if not raw:
+        q_lbl.set_text("Erreur reseau.\nVerifie le WiFi.")
         score_lbl.set_text("")
         return
+    
+    if len(raw) < 10:
+        q_lbl.set_text("Reponse vide.\nReessaie.")
+        score_lbl.set_text("")
+        return
+    
+    parsed = parse_json(raw)
+    
+    if not parsed:
+        q_lbl.set_text("Erreur parsing.\nReessaie.")
+        score_lbl.set_text("")
+        return
+    
+    rc = 1
+    if "response_code" in parsed:
+        rc = parsed["response_code"]
+    
+    if rc != 0:
+        q_lbl.set_text("Erreur API.\nReessaie.")
+        score_lbl.set_text("")
+        return
+    
+    results = []
+    if "results" in parsed:
+        results = parsed["results"]
+    
+    if not results or len(results) == 0:
+        q_lbl.set_text("Aucune question.\nReessaie.")
+        score_lbl.set_text("")
+        return
+    
+    for r in results:
+        if not r:
+            continue
+        q = ""
+        if "question" in r:
+            q = decode_html(r["question"])
+        correct = ""
+        if "correct_answer" in r:
+            correct = decode_html(r["correct_answer"])
+        inc = []
+        if "incorrect_answers" in r:
+            inc = r["incorrect_answers"]
+        
+        if not q or not correct or len(inc) < 3:
+            continue
+        
+        choices = [correct]
+        for a in inc:
+            choices.append(decode_html(a))
+        
+        _rseed = _rseed + len(q)
+        shuffle(choices)
+        
+        ci = 0
+        for idx in range(len(choices)):
+            if choices[idx] == correct:
+                ci = idx
+                break
+        
+        cat = ""
+        if "category" in r:
+            cat = decode_html(r["category"])
+        diff = "easy"
+        if "difficulty" in r:
+            diff = r["difficulty"]
+        
+        questions.append({
+            "q": q,
+            "choices": choices,
+            "ci": ci,
+            "cat": cat,
+            "diff": diff,
+        })
+    
+    if len(questions) == 0:
+        q_lbl.set_text("Erreur traitement.\nReessaie.")
+        score_lbl.set_text("")
+        return
+    
     qidx = 0
     score = 0
     total = len(questions)
