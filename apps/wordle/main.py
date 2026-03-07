@@ -28,6 +28,7 @@ game_over = False
 tile_labels = []
 tile_row_btns = []
 key_btns = []
+key_map = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 # keyboard color state: 0=unused 1=gray 2=yellow 3=green
 kb_state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -69,11 +70,64 @@ def delete_letter():
     guess[current_col] = ""
     tile_labels[current_row][current_col].set_text(" ")
 
+def letter_idx(letter):
+    if letter == "A":
+        return 0
+    if letter == "B":
+        return 1
+    if letter == "C":
+        return 2
+    if letter == "D":
+        return 3
+    if letter == "E":
+        return 4
+    if letter == "F":
+        return 5
+    if letter == "G":
+        return 6
+    if letter == "H":
+        return 7
+    if letter == "I":
+        return 8
+    if letter == "J":
+        return 9
+    if letter == "K":
+        return 10
+    if letter == "L":
+        return 11
+    if letter == "M":
+        return 12
+    if letter == "N":
+        return 13
+    if letter == "O":
+        return 14
+    if letter == "P":
+        return 15
+    if letter == "Q":
+        return 16
+    if letter == "R":
+        return 17
+    if letter == "S":
+        return 18
+    if letter == "T":
+        return 19
+    if letter == "U":
+        return 20
+    if letter == "V":
+        return 21
+    if letter == "W":
+        return 22
+    if letter == "X":
+        return 23
+    if letter == "Y":
+        return 24
+    if letter == "Z":
+        return 25
+    return -1
+
 def color_key(letter, level):
-    idx = ord(letter) - 65
+    idx = letter_idx(letter)
     if idx < 0:
-        return
-    if idx > 25:
         return
     old = kb_state[idx]
     if level <= old:
@@ -85,185 +139,57 @@ def color_key(letter, level):
         bg = COL_YELLOW
     else:
         bg = COL_GRAY
-    for k in key_btns:
-        if k.text == letter:
-            k.btn.set_style_bg_color(bg, 0)
-            k.btn.set_style_bg_opa(lv.OPA.COVER, 0)
-            return
+    btn = key_map[idx]
+    if btn:
+        btn.set_style_bg_color(bg, 0)
+        btn.set_style_bg_opa(lv.OPA.COVER, 0)
 
 def submit_guess():
     global current_row, current_col, game_over
     if current_col < WORD_LEN:
         status_lbl.set_text("5 lettres!")
         return
-    # Colors: 0=miss, 1=yellow, 2=green
-    c0 = 0
-    c1 = 0
-    c2 = 0
-    c3 = 0
-    c4 = 0
-    r0 = target[0]
-    r1 = target[1]
-    r2 = target[2]
-    r3 = target[3]
-    r4 = target[4]
-    # Green pass
-    if guess[0] == target[0]:
-        c0 = 2
-        r0 = ""
-    if guess[1] == target[1]:
-        c1 = 2
-        r1 = ""
-    if guess[2] == target[2]:
-        c2 = 2
-        r2 = ""
-    if guess[3] == target[3]:
-        c3 = 2
-        r3 = ""
-    if guess[4] == target[4]:
-        c4 = 2
-        r4 = ""
-    # Yellow pass for slot 0
-    if c0 == 0:
-        g0 = guess[0]
-        if r0 == g0:
-            c0 = 1
-            r0 = ""
-        elif r1 == g0:
-            c0 = 1
-            r1 = ""
-        elif r2 == g0:
-            c0 = 1
-            r2 = ""
-        elif r3 == g0:
-            c0 = 1
-            r3 = ""
-        elif r4 == g0:
-            c0 = 1
-            r4 = ""
-    # Yellow pass for slot 1
-    if c1 == 0:
-        g1 = guess[1]
-        if r0 == g1:
-            c1 = 1
-            r0 = ""
-        elif r1 == g1:
-            c1 = 1
-            r1 = ""
-        elif r2 == g1:
-            c1 = 1
-            r2 = ""
-        elif r3 == g1:
-            c1 = 1
-            r3 = ""
-        elif r4 == g1:
-            c1 = 1
-            r4 = ""
-    # Yellow pass for slot 2
-    if c2 == 0:
-        g2 = guess[2]
-        if r0 == g2:
-            c2 = 1
-            r0 = ""
-        elif r1 == g2:
-            c2 = 1
-            r1 = ""
-        elif r2 == g2:
-            c2 = 1
-            r2 = ""
-        elif r3 == g2:
-            c2 = 1
-            r3 = ""
-        elif r4 == g2:
-            c2 = 1
-            r4 = ""
-    # Yellow pass for slot 3
-    if c3 == 0:
-        g3 = guess[3]
-        if r0 == g3:
-            c3 = 1
-            r0 = ""
-        elif r1 == g3:
-            c3 = 1
-            r1 = ""
-        elif r2 == g3:
-            c3 = 1
-            r2 = ""
-        elif r3 == g3:
-            c3 = 1
-            r3 = ""
-        elif r4 == g3:
-            c3 = 1
-            r4 = ""
-    # Yellow pass for slot 4
-    if c4 == 0:
-        g4 = guess[4]
-        if r0 == g4:
-            c4 = 1
-        elif r1 == g4:
-            c4 = 1
-        elif r2 == g4:
-            c4 = 1
-        elif r3 == g4:
-            c4 = 1
-        elif r4 == g4:
-            c4 = 1
-    # Apply colors to tiles
+    colors = [0, 0, 0, 0, 0]
+    rem = [target[0], target[1], target[2], target[3], target[4]]
+    i = 0
+    while i < WORD_LEN:
+        if guess[i] == target[i]:
+            colors[i] = 2
+            rem[i] = ""
+        i = i + 1
+    i = 0
+    while i < WORD_LEN:
+        if colors[i] == 0:
+            j = 0
+            while j < WORD_LEN:
+                if rem[j] == guess[i]:
+                    colors[i] = 1
+                    rem[j] = ""
+                    break
+                j = j + 1
+        i = i + 1
+
     rb = tile_row_btns[current_row]
     rl = tile_labels[current_row]
-    # Tile 0
-    rl[0].set_text(guess[0])
-    if c0 == 2:
-        rb[0].set_style_bg_color(COL_GREEN, 0)
-    elif c0 == 1:
-        rb[0].set_style_bg_color(COL_YELLOW, 0)
-    else:
-        rb[0].set_style_bg_color(COL_GRAY, 0)
-    rb[0].set_style_bg_opa(lv.OPA.COVER, 0)
-    # Tile 1
-    rl[1].set_text(guess[1])
-    if c1 == 2:
-        rb[1].set_style_bg_color(COL_GREEN, 0)
-    elif c1 == 1:
-        rb[1].set_style_bg_color(COL_YELLOW, 0)
-    else:
-        rb[1].set_style_bg_color(COL_GRAY, 0)
-    rb[1].set_style_bg_opa(lv.OPA.COVER, 0)
-    # Tile 2
-    rl[2].set_text(guess[2])
-    if c2 == 2:
-        rb[2].set_style_bg_color(COL_GREEN, 0)
-    elif c2 == 1:
-        rb[2].set_style_bg_color(COL_YELLOW, 0)
-    else:
-        rb[2].set_style_bg_color(COL_GRAY, 0)
-    rb[2].set_style_bg_opa(lv.OPA.COVER, 0)
-    # Tile 3
-    rl[3].set_text(guess[3])
-    if c3 == 2:
-        rb[3].set_style_bg_color(COL_GREEN, 0)
-    elif c3 == 1:
-        rb[3].set_style_bg_color(COL_YELLOW, 0)
-    else:
-        rb[3].set_style_bg_color(COL_GRAY, 0)
-    rb[3].set_style_bg_opa(lv.OPA.COVER, 0)
-    # Tile 4
-    rl[4].set_text(guess[4])
-    if c4 == 2:
-        rb[4].set_style_bg_color(COL_GREEN, 0)
-    elif c4 == 1:
-        rb[4].set_style_bg_color(COL_YELLOW, 0)
-    else:
-        rb[4].set_style_bg_color(COL_GRAY, 0)
-    rb[4].set_style_bg_opa(lv.OPA.COVER, 0)
-    # Color keyboard keys: level = 1(gray) 2(yellow) 3(green)
-    color_key(guess[0], c0 + 1)
-    color_key(guess[1], c1 + 1)
-    color_key(guess[2], c2 + 1)
-    color_key(guess[3], c3 + 1)
-    color_key(guess[4], c4 + 1)
-    # Win check
-    if c0 == 2 and c1 == 2 and c2 == 2 and c3 == 2 and c4 == 2:
+    i = 0
+    all_green = 1
+    while i < WORD_LEN:
+        rl[i].set_text(guess[i])
+        if colors[i] == 2:
+            rb[i].set_style_bg_color(COL_GREEN, 0)
+            color_key(guess[i], 3)
+        elif colors[i] == 1:
+            rb[i].set_style_bg_color(COL_YELLOW, 0)
+            color_key(guess[i], 2)
+            all_green = 0
+        else:
+            rb[i].set_style_bg_color(COL_GRAY, 0)
+            color_key(guess[i], 1)
+            all_green = 0
+        rb[i].set_style_bg_opa(lv.OPA.COVER, 0)
+        i = i + 1
+
+    if all_green == 1:
         status_lbl.set_text("Bravo!")
         game_over = True
         return
@@ -292,6 +218,9 @@ class KeyBtn:
         self.btn = btn
         self.lbl = lbl
         self.text = text
+        idx = letter_idx(text)
+        if idx >= 0:
+            key_map[idx] = btn
         btn.add_event_cb(self.on_click, lv.EVENT.CLICKED, None)
 
     def on_click(self, e):
