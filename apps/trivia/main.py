@@ -282,15 +282,14 @@ q_box.align(lv.ALIGN.TOP_MID, 0, 46)
 q_box.set_style_bg_color(COL_ACCENT, 0)
 q_box.set_style_border_width(0, 0)
 q_box.set_style_radius(BTN_RADIUS, 0)
-q_box.set_style_pad_all(10, 0)
 q_box.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
 q_lbl = lv.label(q_box)
 q_lbl.set_long_mode(1)
-q_lbl.set_width(276)
+q_lbl.set_width(280)
 q_lbl.set_text("Chargement...")
 q_lbl.set_style_text_color(COL_TEXT, 0)
-q_lbl.align(lv.ALIGN.TOP_LEFT, 0, 0)
+q_lbl.align(lv.ALIGN.TOP_LEFT, 10, 8)
 
 # ─── Answer buttons ───────────────────────────────────────
 ans_btns = []
