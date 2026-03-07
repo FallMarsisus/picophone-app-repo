@@ -232,9 +232,10 @@ def parse_questions(raw):
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(COL_BG, 0)
+sc = scr
 
 # ─── Home button ───────────────────────────────────────────
-hb = lv.btn(scr)
+hb = lv.btn(sc)
 hb.set_size(60, 26)
 hb.align(lv.ALIGN.TOP_LEFT, 4, 4)
 hb.set_style_bg_color(COL_ACCENT, 0)
