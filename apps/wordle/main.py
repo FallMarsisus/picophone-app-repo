@@ -15,10 +15,11 @@ KEY_GAP = 3
 KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - KEY_GAP
 
 # --------------- Game state (module globals) ---------------
-target_word = "CRANE"
+# Store as char lists to avoid str_to_list allocations
+target = ["C", "R", "A", "N", "E"]
+guess = ["", "", "", "", ""]
 current_row = 0
 current_col = 0
-current_guess = ""
 game_over = False
 tile_labels = []
 tile_btns = []
@@ -37,111 +38,202 @@ status_lbl.set_text("")
 status_lbl.align(lv.ALIGN.TOP_MID, 0, 28)
 
 # --------------- Helper functions ---------------
-def set_status(text):
-    status_lbl.set_text(text)
-
-def to_upper(s):
-    result = ""
-    for ch in s:
-        if ch >= 'a' and ch <= 'z':
-            result = result + chr(ord(ch) - 32)
-        else:
-            result = result + ch
-    return result
-
-def count_chars(s):
-    n = 0
-    for c in s:
-        n = n + 1
-    return n
+def to_upper_char(ch):
+    if ch >= 'a' and ch <= 'z':
+        return chr(ord(ch) - 32)
+    return ch
 
 def add_letter(letter):
-    global current_col, current_guess
+    global current_col
     if game_over:
         return
     if current_col >= WORD_LEN:
         return
-    current_guess = current_guess + letter
+    guess[current_col] = letter
     tile_labels[current_row][current_col].set_text(letter)
     current_col = current_col + 1
 
 def delete_letter():
-    global current_col, current_guess
+    global current_col
     if game_over:
         return
     if current_col == 0:
         return
     current_col = current_col - 1
-    new_guess = ""
-    idx = 0
-    for ch in current_guess:
-        if idx >= current_col:
-            break
-        new_guess = new_guess + ch
-        idx = idx + 1
-    current_guess = new_guess
+    guess[current_col] = ""
     tile_labels[current_row][current_col].set_text(" ")
 
-def str_to_list(s):
-    out = []
-    for ch in s:
-        out.append(ch)
-    return out
-
-def compute_colors(guess, target):
-    g = str_to_list(guess)
-    t = str_to_list(target)
-    colors = ["X", "X", "X", "X", "X"]
-    remaining = []
-    for ch in t:
-        remaining.append(ch)
-    for i in range(WORD_LEN):
-        if g[i] == t[i]:
-            colors[i] = "G"
-            remaining[i] = ""
-    for i in range(WORD_LEN):
-        if colors[i] == "G":
-            continue
-        for j in range(WORD_LEN):
-            if remaining[j] == g[i]:
-                colors[i] = "Y"
-                remaining[j] = ""
-                break
-    return colors
-
-def apply_row_colors(row, guess, colors):
-    g = str_to_list(guess)
-    for col in range(WORD_LEN):
-        lbl = tile_labels[row][col]
-        c = colors[col]
-        if c == "G":
-            lbl.set_text("[" + g[col] + "]")
-        elif c == "Y":
-            lbl.set_text("(" + g[col] + ")")
-        else:
-            lbl.set_text(" " + g[col] + " ")
-
 def submit_guess():
-    global current_row, current_col, current_guess, game_over
+    global current_row, current_col, game_over
     if current_col < WORD_LEN:
-        set_status("Mot trop court!")
+        status_lbl.set_text("5 lettres!")
         return
-    guess = to_upper(current_guess)
-    target = to_upper(target_word)
-    colors = compute_colors(guess, target)
-    apply_row_colors(current_row, guess, colors)
-    if guess == target:
-        set_status("Bravo!")
+    # Colors: 0=miss, 1=yellow, 2=green
+    c0 = 0
+    c1 = 0
+    c2 = 0
+    c3 = 0
+    c4 = 0
+    r0 = target[0]
+    r1 = target[1]
+    r2 = target[2]
+    r3 = target[3]
+    r4 = target[4]
+    # Green pass
+    if guess[0] == target[0]:
+        c0 = 2
+        r0 = ""
+    if guess[1] == target[1]:
+        c1 = 2
+        r1 = ""
+    if guess[2] == target[2]:
+        c2 = 2
+        r2 = ""
+    if guess[3] == target[3]:
+        c3 = 2
+        r3 = ""
+    if guess[4] == target[4]:
+        c4 = 2
+        r4 = ""
+    # Yellow pass for slot 0
+    if c0 == 0:
+        g0 = guess[0]
+        if r0 == g0:
+            c0 = 1
+            r0 = ""
+        elif r1 == g0:
+            c0 = 1
+            r1 = ""
+        elif r2 == g0:
+            c0 = 1
+            r2 = ""
+        elif r3 == g0:
+            c0 = 1
+            r3 = ""
+        elif r4 == g0:
+            c0 = 1
+            r4 = ""
+    # Yellow pass for slot 1
+    if c1 == 0:
+        g1 = guess[1]
+        if r0 == g1:
+            c1 = 1
+            r0 = ""
+        elif r1 == g1:
+            c1 = 1
+            r1 = ""
+        elif r2 == g1:
+            c1 = 1
+            r2 = ""
+        elif r3 == g1:
+            c1 = 1
+            r3 = ""
+        elif r4 == g1:
+            c1 = 1
+            r4 = ""
+    # Yellow pass for slot 2
+    if c2 == 0:
+        g2 = guess[2]
+        if r0 == g2:
+            c2 = 1
+            r0 = ""
+        elif r1 == g2:
+            c2 = 1
+            r1 = ""
+        elif r2 == g2:
+            c2 = 1
+            r2 = ""
+        elif r3 == g2:
+            c2 = 1
+            r3 = ""
+        elif r4 == g2:
+            c2 = 1
+            r4 = ""
+    # Yellow pass for slot 3
+    if c3 == 0:
+        g3 = guess[3]
+        if r0 == g3:
+            c3 = 1
+            r0 = ""
+        elif r1 == g3:
+            c3 = 1
+            r1 = ""
+        elif r2 == g3:
+            c3 = 1
+            r2 = ""
+        elif r3 == g3:
+            c3 = 1
+            r3 = ""
+        elif r4 == g3:
+            c3 = 1
+            r4 = ""
+    # Yellow pass for slot 4
+    if c4 == 0:
+        g4 = guess[4]
+        if r0 == g4:
+            c4 = 1
+        elif r1 == g4:
+            c4 = 1
+        elif r2 == g4:
+            c4 = 1
+        elif r3 == g4:
+            c4 = 1
+        elif r4 == g4:
+            c4 = 1
+    # Apply to tiles
+    row_lbl = tile_labels[current_row]
+    ch0 = guess[0]
+    ch1 = guess[1]
+    ch2 = guess[2]
+    ch3 = guess[3]
+    ch4 = guess[4]
+    if c0 == 2:
+        row_lbl[0].set_text("[" + ch0 + "]")
+    elif c0 == 1:
+        row_lbl[0].set_text("(" + ch0 + ")")
+    else:
+        row_lbl[0].set_text(" " + ch0 + " ")
+    if c1 == 2:
+        row_lbl[1].set_text("[" + ch1 + "]")
+    elif c1 == 1:
+        row_lbl[1].set_text("(" + ch1 + ")")
+    else:
+        row_lbl[1].set_text(" " + ch1 + " ")
+    if c2 == 2:
+        row_lbl[2].set_text("[" + ch2 + "]")
+    elif c2 == 1:
+        row_lbl[2].set_text("(" + ch2 + ")")
+    else:
+        row_lbl[2].set_text(" " + ch2 + " ")
+    if c3 == 2:
+        row_lbl[3].set_text("[" + ch3 + "]")
+    elif c3 == 1:
+        row_lbl[3].set_text("(" + ch3 + ")")
+    else:
+        row_lbl[3].set_text(" " + ch3 + " ")
+    if c4 == 2:
+        row_lbl[4].set_text("[" + ch4 + "]")
+    elif c4 == 1:
+        row_lbl[4].set_text("(" + ch4 + ")")
+    else:
+        row_lbl[4].set_text(" " + ch4 + " ")
+    # Win check
+    if c0 == 2 and c1 == 2 and c2 == 2 and c3 == 2 and c4 == 2:
+        status_lbl.set_text("Bravo!")
         game_over = True
         return
     current_row = current_row + 1
     current_col = 0
-    current_guess = ""
+    guess[0] = ""
+    guess[1] = ""
+    guess[2] = ""
+    guess[3] = ""
+    guess[4] = ""
     if current_row >= MAX_ROWS:
-        set_status("Perdu! " + target)
+        status_lbl.set_text("Perdu!")
         game_over = True
     else:
-        set_status("Essai " + str(current_row + 1) + "/" + str(MAX_ROWS))
+        status_lbl.set_text(str(current_row + 1) + "/" + str(MAX_ROWS))
 
 # --------------- KeyBtn class ---------------
 # Same pattern as the working Button class: self.method as callback
@@ -242,11 +334,11 @@ key_btns.append(kb)
 
 # --------------- Load word from API (timer, one-shot) ---------------
 def load_word(t):
-    global target_word
+    global target
     t._del()
     raw = lv.http_get("http://random-word-api.herokuapp.com/word?length=5")
     if raw:
-        word = ""
+        chars = []
         in_word = False
         for ch in raw:
             if ch == '"' and not in_word:
@@ -255,10 +347,17 @@ def load_word(t):
             if ch == '"' and in_word:
                 break
             if in_word:
-                word = word + ch
-        if count_chars(word) == WORD_LEN:
-            target_word = to_upper(word)
-    set_status("Essai 1/" + str(MAX_ROWS))
+                chars.append(to_upper_char(ch))
+        n = 0
+        for c in chars:
+            n = n + 1
+        if n == WORD_LEN:
+            target[0] = chars[0]
+            target[1] = chars[1]
+            target[2] = chars[2]
+            target[3] = chars[3]
+            target[4] = chars[4]
+    status_lbl.set_text("1/" + str(MAX_ROWS))
 
 word_timer = lv.timer_create_basic()
 word_timer.set_period(100)
