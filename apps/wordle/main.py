@@ -1,5 +1,4 @@
 # Wordle pour PikaScript + pika_lvgl
-# Pattern: classes + module-level synchronous creation (no timer init)
 import pika_lvgl as lv
 
 # --------------- Constants ---------------
@@ -8,22 +7,29 @@ WORD_LEN = 5
 TILE_SIZE = 40
 TILE_GAP = 4
 GRID_X = (320 - (TILE_SIZE * WORD_LEN + TILE_GAP * (WORD_LEN - 1))) // 2
-GRID_Y = 40
-KEY_W = 24
-KEY_H = 26
-KEY_GAP = 3
-KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - KEY_GAP
+GRID_Y = 44
+KEY_W = 28
+KEY_H = 36
+KEY_GAP = 4
+KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - 4
 
-# --------------- Game state (module globals) ---------------
-# Store as char lists to avoid str_to_list allocations
+# Colors
+COL_GREEN = lv.palette_main(lv.PALETTE.GREEN)
+COL_YELLOW = lv.palette_main(lv.PALETTE.YELLOW)
+COL_GRAY = lv.palette_main(lv.PALETTE.GREY)
+COL_WHITE = lv.color_white()
+
+# --------------- Game state ---------------
 target = ["C", "R", "A", "N", "E"]
 guess = ["", "", "", "", ""]
 current_row = 0
 current_col = 0
 game_over = False
 tile_labels = []
-tile_btns = []
+tile_row_btns = []
 key_btns = []
+# keyboard color state: 0=unused 1=gray 2=yellow 3=green
+kb_state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -62,6 +68,28 @@ def delete_letter():
     current_col = current_col - 1
     guess[current_col] = ""
     tile_labels[current_row][current_col].set_text(" ")
+
+def color_key(letter, level):
+    idx = ord(letter) - 65
+    if idx < 0:
+        return
+    if idx > 25:
+        return
+    old = kb_state[idx]
+    if level <= old:
+        return
+    kb_state[idx] = level
+    if level == 3:
+        bg = COL_GREEN
+    elif level == 2:
+        bg = COL_YELLOW
+    else:
+        bg = COL_GRAY
+    for k in key_btns:
+        if k.text == letter:
+            k.btn.set_style_bg_color(bg, 0)
+            k.btn.set_style_bg_opa(lv.OPA.COVER, 0)
+            return
 
 def submit_guess():
     global current_row, current_col, game_over
@@ -180,43 +208,60 @@ def submit_guess():
             c4 = 1
         elif r4 == g4:
             c4 = 1
-    # Apply to tiles
-    row_lbl = tile_labels[current_row]
-    ch0 = guess[0]
-    ch1 = guess[1]
-    ch2 = guess[2]
-    ch3 = guess[3]
-    ch4 = guess[4]
+    # Apply colors to tiles
+    rb = tile_row_btns[current_row]
+    rl = tile_labels[current_row]
+    # Tile 0
+    rl[0].set_text(guess[0])
     if c0 == 2:
-        row_lbl[0].set_text("[" + ch0 + "]")
+        rb[0].set_style_bg_color(COL_GREEN, 0)
     elif c0 == 1:
-        row_lbl[0].set_text("(" + ch0 + ")")
+        rb[0].set_style_bg_color(COL_YELLOW, 0)
     else:
-        row_lbl[0].set_text(" " + ch0 + " ")
+        rb[0].set_style_bg_color(COL_GRAY, 0)
+    rb[0].set_style_bg_opa(lv.OPA.COVER, 0)
+    # Tile 1
+    rl[1].set_text(guess[1])
     if c1 == 2:
-        row_lbl[1].set_text("[" + ch1 + "]")
+        rb[1].set_style_bg_color(COL_GREEN, 0)
     elif c1 == 1:
-        row_lbl[1].set_text("(" + ch1 + ")")
+        rb[1].set_style_bg_color(COL_YELLOW, 0)
     else:
-        row_lbl[1].set_text(" " + ch1 + " ")
+        rb[1].set_style_bg_color(COL_GRAY, 0)
+    rb[1].set_style_bg_opa(lv.OPA.COVER, 0)
+    # Tile 2
+    rl[2].set_text(guess[2])
     if c2 == 2:
-        row_lbl[2].set_text("[" + ch2 + "]")
+        rb[2].set_style_bg_color(COL_GREEN, 0)
     elif c2 == 1:
-        row_lbl[2].set_text("(" + ch2 + ")")
+        rb[2].set_style_bg_color(COL_YELLOW, 0)
     else:
-        row_lbl[2].set_text(" " + ch2 + " ")
+        rb[2].set_style_bg_color(COL_GRAY, 0)
+    rb[2].set_style_bg_opa(lv.OPA.COVER, 0)
+    # Tile 3
+    rl[3].set_text(guess[3])
     if c3 == 2:
-        row_lbl[3].set_text("[" + ch3 + "]")
+        rb[3].set_style_bg_color(COL_GREEN, 0)
     elif c3 == 1:
-        row_lbl[3].set_text("(" + ch3 + ")")
+        rb[3].set_style_bg_color(COL_YELLOW, 0)
     else:
-        row_lbl[3].set_text(" " + ch3 + " ")
+        rb[3].set_style_bg_color(COL_GRAY, 0)
+    rb[3].set_style_bg_opa(lv.OPA.COVER, 0)
+    # Tile 4
+    rl[4].set_text(guess[4])
     if c4 == 2:
-        row_lbl[4].set_text("[" + ch4 + "]")
+        rb[4].set_style_bg_color(COL_GREEN, 0)
     elif c4 == 1:
-        row_lbl[4].set_text("(" + ch4 + ")")
+        rb[4].set_style_bg_color(COL_YELLOW, 0)
     else:
-        row_lbl[4].set_text(" " + ch4 + " ")
+        rb[4].set_style_bg_color(COL_GRAY, 0)
+    rb[4].set_style_bg_opa(lv.OPA.COVER, 0)
+    # Color keyboard keys: level = 1(gray) 2(yellow) 3(green)
+    color_key(guess[0], c0 + 1)
+    color_key(guess[1], c1 + 1)
+    color_key(guess[2], c2 + 1)
+    color_key(guess[3], c3 + 1)
+    color_key(guess[4], c4 + 1)
     # Win check
     if c0 == 2 and c1 == 2 and c2 == 2 and c3 == 2 and c4 == 2:
         status_lbl.set_text("Bravo!")
@@ -236,7 +281,6 @@ def submit_guess():
         status_lbl.set_text(str(current_row + 1) + "/" + str(MAX_ROWS))
 
 # --------------- KeyBtn class ---------------
-# Same pattern as the working Button class: self.method as callback
 class KeyBtn:
     def __init__(self, parent, text, x, y, w, h):
         btn = lv.btn(parent)
@@ -283,35 +327,37 @@ def on_home(evt):
 
 home_btn.add_event_cb(on_home, lv.EVENT.CLICKED, 0)
 
-# --------------- Create tile grid (synchronous, module-level) ---------------
+# --------------- Create tile grid ---------------
 for row in range(MAX_ROWS):
     row_labels = []
+    row_btns = []
     for col in range(WORD_LEN):
         tile = lv.btn(scr)
         tile.set_size(TILE_SIZE, TILE_SIZE)
         tx = GRID_X + col * (TILE_SIZE + TILE_GAP)
         ty = GRID_Y + row * (TILE_SIZE + TILE_GAP)
         tile.align(lv.ALIGN.TOP_LEFT, tx, ty)
-        tile_btns.append(tile)
+        row_btns.append(tile)
         lbl = lv.label(tile)
         lbl.set_text(" ")
         lbl.center()
         row_labels.append(lbl)
+    tile_row_btns.append(row_btns)
     tile_labels.append(row_labels)
 
-# --------------- Create keyboard (synchronous, module-level) ---------------
+# --------------- Create keyboard ---------------
 row1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"]
 row2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"]
 row3 = ["Z", "X", "C", "V", "B", "N", "M"]
 
-# Row 1: QWERTYUIOP
+# Row 1: QWERTYUIOP (10 keys)
 x0 = (320 - (10 * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
 for i in range(10):
     kb = KeyBtn(scr, row1[i], x0, KBD_Y, KEY_W, KEY_H)
     key_btns.append(kb)
     x0 = x0 + KEY_W + KEY_GAP
 
-# Row 2: ASDFGHJKL
+# Row 2: ASDFGHJKL (9 keys)
 ky2 = KBD_Y + KEY_H + KEY_GAP
 x0 = (320 - (9 * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
 for i in range(9):
@@ -321,18 +367,21 @@ for i in range(9):
 
 # Row 3: < Z X C V B N M OK
 ky3 = KBD_Y + 2 * (KEY_H + KEY_GAP)
-x0 = 10
-kb = KeyBtn(scr, "<", x0, ky3, KEY_W + 6, KEY_H)
+wdel = KEY_W + 8
+wok = KEY_W + 8
+row3w = wdel + KEY_GAP + 7 * (KEY_W + KEY_GAP) - KEY_GAP + KEY_GAP + wok
+x0 = (320 - row3w) // 2
+kb = KeyBtn(scr, "<", x0, ky3, wdel, KEY_H)
 key_btns.append(kb)
-x0 = x0 + KEY_W + 6 + KEY_GAP
+x0 = x0 + wdel + KEY_GAP
 for i in range(7):
     kb = KeyBtn(scr, row3[i], x0, ky3, KEY_W, KEY_H)
     key_btns.append(kb)
     x0 = x0 + KEY_W + KEY_GAP
-kb = KeyBtn(scr, "OK", x0, ky3, KEY_W + 6, KEY_H)
+kb = KeyBtn(scr, "OK", x0, ky3, wok, KEY_H)
 key_btns.append(kb)
 
-# --------------- Load word from API (timer, one-shot) ---------------
+# --------------- Load word from API ---------------
 def load_word(t):
     global target
     t._del()
