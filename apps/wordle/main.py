@@ -6,7 +6,7 @@ MAX_ROWS = 6
 WORD_LEN = 5
 TILE_SIZE = 40
 TILE_GAP = 4
-GRID_X = (320 - (TILE_SIZE * WORD_LEN + TILE_GAP * (WORD_LEN - 1))) // 2
+GRID_X = 6
 GRID_Y = 44
 KEY_W = 28
 KEY_H = 36
@@ -18,6 +18,7 @@ COL_GREEN = lv.palette_main(lv.PALETTE.GREEN)
 COL_YELLOW = lv.palette_main(lv.PALETTE.YELLOW)
 COL_GRAY = lv.palette_main(lv.PALETTE.GREY)
 COL_WHITE = lv.color_white()
+COL_BLACK = lv.color_black()
 
 # --------------- Game state ---------------
 target = ["C", "R", "A", "N", "E"]
@@ -286,6 +287,7 @@ class KeyBtn:
         btn = lv.btn(parent)
         btn.set_size(w, h)
         btn.align(lv.ALIGN.TOP_LEFT, x, y)
+        btn.set_style_text_color(COL_BLACK, 0)
         lbl = lv.label(btn)
         lbl.set_text(text)
         lbl.center()
@@ -334,6 +336,9 @@ for row in range(MAX_ROWS):
     for col in range(WORD_LEN):
         tile = lv.btn(scr)
         tile.set_size(TILE_SIZE, TILE_SIZE)
+        tile.set_style_bg_color(COL_WHITE, 0)
+        tile.set_style_bg_opa(lv.OPA.COVER, 0)
+        tile.set_style_text_color(COL_BLACK, 0)
         tx = GRID_X + col * (TILE_SIZE + TILE_GAP)
         ty = GRID_Y + row * (TILE_SIZE + TILE_GAP)
         tile.align(lv.ALIGN.TOP_LEFT, tx, ty)
@@ -367,10 +372,9 @@ for i in range(9):
 
 # Row 3: < Z X C V B N M OK
 ky3 = KBD_Y + 2 * (KEY_H + KEY_GAP)
-wdel = KEY_W + 8
-wok = KEY_W + 8
-row3w = wdel + KEY_GAP + 7 * (KEY_W + KEY_GAP) - KEY_GAP + KEY_GAP + wok
-x0 = (320 - row3w) // 2
+wdel = KEY_W + 4
+wok = KEY_W + 4
+x0 = 4
 kb = KeyBtn(scr, "<", x0, ky3, wdel, KEY_H)
 key_btns.append(kb)
 x0 = x0 + wdel + KEY_GAP
