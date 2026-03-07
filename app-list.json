@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-07T16:17:33.353901+00:00",
+  "generated_at": "2026-03-07T16:21:42.854297+00:00",
   "app_count": 2,
   "apps": [
     {
@@ -20,12 +20,12 @@
       "name": "Wordle",
       "description": "The classic Wordle word-guessing game. Guess the 5-letter word in 6 tries. Colors indicate correct letters (green), misplaced letters (yellow) or absent letters (gray).",
       "author": "FallMarsisus",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-07T17:17:19+01:00",
+      "last_updated": "2026-03-07T17:21:30+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "b15690e59156d24c699f99d827f07604ed05e2cc"
+      "last_commit_sha": "b31475c75b05c5c73b909290fc6e2a292887caf4"
     }
   ]
 }
