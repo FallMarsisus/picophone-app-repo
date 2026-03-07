@@ -7,10 +7,10 @@ import pika_lvgl as lv
 WORD_API  = "http://random-word-api.herokuapp.com/word?length=5"
 MAX_ROWS  = 6
 WORD_LEN  = 5
-TILE_SIZE = 52
-TILE_GAP  = 6
+TILE_SIZE = 40
+TILE_GAP  = 4
 GRID_X    = (320 - (TILE_SIZE * WORD_LEN + TILE_GAP * (WORD_LEN - 1))) // 2
-GRID_Y    = 60
+GRID_Y    = 40
 
 # ── Game state ──
 target_word  = ""
@@ -56,10 +56,10 @@ def create_tiles_row(row):
         row_labels.append(tile_lbl)
     tile_labels.append(row_labels)
 
-# ── Clavier (une seule callback générique) ──
+# Clavier (une seule callback générique) ──
 KBD_Y = GRID_Y + MAX_ROWS * (TILE_SIZE + TILE_GAP) + 4
-KEY_W = 27
-KEY_H = 32
+KEY_W = 24
+KEY_H = 26
 KEY_GAP = 3
 
 def add_letter(letter):
