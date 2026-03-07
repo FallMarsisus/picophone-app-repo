@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-03-07T10:49:54.364942+00:00",
+  "app_count": 2,
+  "apps": [
+    {
+      "id": "dummy",
+      "name": "Demo HTTP",
+      "description": "Demo app showing HTTP GET request using the PikaPython environment. Fetches a random 5-letter word and displays it on screen.",
+      "author": "FallMarsisus",
+      "version": "1.0.0",
+      "entry": "main.py",
+      "category": "demo",
+      "last_updated": "2026-03-07T10:49:54.362711+00:00",
+      "last_updated_by": "",
+      "last_commit_sha": ""
+    },
+    {
+      "id": "wordle",
+      "name": "Wordle",
+      "description": "The classic Wordle word-guessing game. Guess the 5-letter word in 6 tries. Colors indicate correct letters (green), misplaced letters (yellow) or absent letters (gray).",
+      "author": "FallMarsisus",
+      "version": "1.0.0",
+      "entry": "main.py",
+      "category": "game",
+      "last_updated": "2026-03-07T10:49:54.364916+00:00",
+      "last_updated_by": "",
+      "last_commit_sha": ""
+    }
+  ]
+}
