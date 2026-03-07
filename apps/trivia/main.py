@@ -1,248 +1,228 @@
 import pika_lvgl as lv
 
-# --- Configuration ---
+# Config
 SCR_W = 320
 SCR_H = 480
-BTN_RADIUS = 10
-Q_PER_ROUND = 5
+QMAX = 5
 
-API_BASE = "http://opentdb.com/api.php"
-
-# --- Colors ---
+# Colors
 COL_BG = lv.color_black()
-COL_ACCENT = lv.palette_main(lv.PALETTE.BLUE_GREY)
-COL_CORRECT = lv.palette_main(lv.PALETTE.GREEN)
-COL_WRONG = lv.palette_main(lv.PALETTE.RED)
-COL_HIGHLIGHT = lv.palette_main(lv.PALETTE.BLUE)
-COL_TEXT = lv.color_white()
-COL_DIM = lv.palette_main(lv.PALETTE.GREY)
-COL_BTN = lv.palette_main(lv.PALETTE.BLUE_GREY)
+COL_AC = lv.palette_main(lv.PALETTE.BLUE_GREY)
+COL_OK = lv.palette_main(lv.PALETTE.GREEN)
+COL_NO = lv.palette_main(lv.PALETTE.RED)
+COL_HL = lv.palette_main(lv.PALETTE.BLUE)
+COL_TX = lv.color_white()
+COL_DM = lv.palette_main(lv.PALETTE.GREY)
 
-# --- State ---
-questions = []
-qidx = 0
-score = 0
-total = 0
-answered = False
+# State
+q_txt = []
+q_a0 = []
+q_a1 = []
+q_a2 = []
+q_a3 = []
+q_ci = []
+q_cat = []
+qi = 0
+scv = 0
+aok = False
 qt = 0
-fetch_timer = 0
+ft = 0
+cid = 9
+dif = "easy"
+_rs = 12345
 
-# --- HTML entity decoder ---
-def decode_html(s):
-    out = ""
+# Category data (parallel arrays)
+cids = [9, 17, 21, 23, 11, 12, 15, 18]
+cnms = ["Culture G.", "Sciences", "Sports", "Histoire", "Cinema", "Musique", "Jeux Video", "Informatique"]
+
+# HTML decode
+def dhtml(s):
+    o = ""
     i = 0
     n = len(s)
     while i < n:
         if s[i] == '&':
             j = i + 1
-            ent = ""
+            e = ""
             while j < n and s[j] != ';' and (j - i) < 12:
-                ent = ent + s[j]
+                e = e + s[j]
                 j = j + 1
             if j < n and s[j] == ';':
-                if ent == "amp":
-                    out = out + "&"
-                elif ent == "lt":
-                    out = out + "<"
-                elif ent == "gt":
-                    out = out + ">"
-                elif ent == "quot":
-                    out = out + '"'
-                elif ent == "#039" or ent == "apos":
-                    out = out + "'"
-                elif ent == "eacute":
-                    out = out + "e"
-                elif ent == "ntilde":
-                    out = out + "n"
-                elif ent == "uuml":
-                    out = out + "u"
-                elif ent == "ouml":
-                    out = out + "o"
-                elif ent == "auml":
-                    out = out + "a"
-                elif ent == "iacute":
-                    out = out + "i"
-                elif ent == "ldquo" or ent == "rdquo":
-                    out = out + '"'
-                elif ent == "lsquo" or ent == "rsquo":
-                    out = out + "'"
-                elif ent == "hellip":
-                    out = out + "..."
+                if e == "amp":
+                    o = o + "&"
+                elif e == "lt":
+                    o = o + "<"
+                elif e == "gt":
+                    o = o + ">"
+                elif e == "quot":
+                    o = o + '"'
+                elif e == "#039" or e == "apos":
+                    o = o + "'"
+                elif e == "ldquo" or e == "rdquo":
+                    o = o + '"'
+                elif e == "lsquo" or e == "rsquo":
+                    o = o + "'"
+                elif e == "hellip":
+                    o = o + "..."
                 else:
-                    out = out + "&" + ent + ";"
+                    o = o + "&" + e + ";"
                 i = j + 1
             else:
-                out = out + "&"
+                o = o + "&"
                 i = i + 1
         else:
-            out = out + s[i]
+            o = o + s[i]
             i = i + 1
-    return out
+    return o
 
-# --- JSON parser ---
-def skip_ws(s, i):
-    while i < len(s) and (s[i] == ' ' or s[i] == '\n' or s[i] == '\r' or s[i] == '\t'):
-        i = i + 1
-    return i
+# JSON parser (global index, no tuple returns)
+_js = ""
+_jp = 0
 
-def parse_string(s, i):
-    i = i + 1
-    out = ""
-    while i < len(s) and s[i] != '"':
-        if s[i] == '\\' and i + 1 < len(s):
-            nc = s[i + 1]
+def _jw():
+    global _jp
+    while _jp < len(_js) and (_js[_jp] == ' ' or _js[_jp] == '\n' or _js[_jp] == '\r' or _js[_jp] == '\t'):
+        _jp = _jp + 1
+
+def _jstr():
+    global _jp
+    _jp = _jp + 1
+    o = ""
+    while _jp < len(_js) and _js[_jp] != '"':
+        if _js[_jp] == '\\' and _jp + 1 < len(_js):
+            nc = _js[_jp + 1]
             if nc == '"':
-                out = out + '"'
+                o = o + '"'
             elif nc == '\\':
-                out = out + '\\'
+                o = o + '\\'
             elif nc == 'n':
-                out = out + '\n'
+                o = o + ' '
             elif nc == '/':
-                out = out + '/'
+                o = o + '/'
             else:
-                out = out + nc
-            i = i + 2
+                o = o + nc
+            _jp = _jp + 2
         else:
-            out = out + s[i]
-            i = i + 1
-    return out, i + 1
+            o = o + _js[_jp]
+            _jp = _jp + 1
+    _jp = _jp + 1
+    return o
 
-def parse_number(s, i):
-    start = i
-    if s[i] == '-':
-        i = i + 1
-    while i < len(s) and s[i] >= '0' and s[i] <= '9':
-        i = i + 1
-    return int(s[start:i]), i
+def _jnum():
+    global _jp
+    neg = False
+    if _js[_jp] == '-':
+        neg = True
+        _jp = _jp + 1
+    v = 0
+    while _jp < len(_js) and _js[_jp] >= '0' and _js[_jp] <= '9':
+        v = v * 10 + ord(_js[_jp]) - 48
+        _jp = _jp + 1
+    if neg:
+        v = 0 - v
+    return v
 
-def parse_value(s, i):
-    i = skip_ws(s, i)
-    if i >= len(s):
-        return None, i
-    c = s[i]
-    if c == '"':
-        return parse_string(s, i)
-    elif c == '{':
-        return parse_object(s, i)
-    elif c == '[':
-        return parse_array(s, i)
-    elif c == 't':
-        return True, i + 4
-    elif c == 'f':
-        return False, i + 5
-    elif c == 'n':
-        return None, i + 4
-    else:
-        return parse_number(s, i)
+def _jval():
+    global _jp
+    _jw()
+    if _jp >= len(_js):
+        return ""
+    ch = _js[_jp]
+    if ch == '"':
+        return _jstr()
+    if ch == '{':
+        return _jobj()
+    if ch == '[':
+        return _jarr()
+    if ch == 't':
+        _jp = _jp + 4
+        return True
+    if ch == 'f':
+        _jp = _jp + 5
+        return False
+    if ch == 'n':
+        _jp = _jp + 4
+        return ""
+    return _jnum()
 
-def parse_object(s, i):
-    obj = {}
-    i = i + 1
-    i = skip_ws(s, i)
-    if i < len(s) and s[i] == '}':
-        return obj, i + 1
-    while i < len(s):
-        i = skip_ws(s, i)
-        key, i = parse_string(s, i)
-        i = skip_ws(s, i)
-        i = i + 1  # ':'
-        val, i = parse_value(s, i)
-        obj[key] = val
-        i = skip_ws(s, i)
-        if i < len(s) and s[i] == ',':
-            i = i + 1
+def _jobj():
+    global _jp
+    obj = dict()
+    _jp = _jp + 1
+    _jw()
+    if _jp < len(_js) and _js[_jp] == '}':
+        _jp = _jp + 1
+        return obj
+    while _jp < len(_js):
+        _jw()
+        k = _jstr()
+        _jw()
+        _jp = _jp + 1
+        val = _jval()
+        obj[k] = val
+        _jw()
+        if _jp < len(_js) and _js[_jp] == ',':
+            _jp = _jp + 1
         else:
             break
-    return obj, i + 1
+    _jp = _jp + 1
+    return obj
 
-def parse_array(s, i):
+def _jarr():
+    global _jp
     arr = []
-    i = i + 1
-    i = skip_ws(s, i)
-    if i < len(s) and s[i] == ']':
-        return arr, i + 1
-    while i < len(s):
-        val, i = parse_value(s, i)
+    _jp = _jp + 1
+    _jw()
+    if _jp < len(_js) and _js[_jp] == ']':
+        _jp = _jp + 1
+        return arr
+    while _jp < len(_js):
+        val = _jval()
         arr.append(val)
-        i = skip_ws(s, i)
-        if i < len(s) and s[i] == ',':
-            i = i + 1
+        _jw()
+        if _jp < len(_js) and _js[_jp] == ',':
+            _jp = _jp + 1
         else:
             break
-    return arr, i + 1
+    _jp = _jp + 1
+    return arr
 
-def parse_json(s):
-    val, _ = parse_value(s, 0)
-    return val
+def jparse(s):
+    global _js, _jp
+    _js = s
+    _jp = 0
+    return _jval()
 
-# --- Shuffle ---
-_rseed = 12345
-def _rand():
-    global _rseed
-    _rseed = (_rseed * 1103515245 + 12345) & 0x7FFFFFFF
-    return _rseed
+# PRNG + shuffle
+def _rnd():
+    global _rs
+    _rs = (_rs * 1103515245 + 12345) % 2147483648
+    return _rs
 
-def shuffle(arr):
+def shuf(arr):
     n = len(arr)
     i = n - 1
     while i > 0:
-        j = _rand() % (i + 1)
+        j = _rnd() % (i + 1)
         tmp = arr[i]
         arr[i] = arr[j]
         arr[j] = tmp
         i = i - 1
 
-# --- Parse questions ---
-def parse_questions(raw):
-    global _rseed
-    parsed = parse_json(raw)
-    if parsed is None:
-        return []
-    rc = parsed.get("response_code", -1)
-    if rc != 0:
-        return []
-    results = parsed.get("results", [])
-    qs = []
-    for r in results:
-        q = decode_html(r.get("question", ""))
-        correct = decode_html(r.get("correct_answer", ""))
-        inc = r.get("incorrect_answers", [])
-        choices = [correct]
-        for a in inc:
-            choices.append(decode_html(a))
-        _rseed = _rseed + len(q)
-        shuffle(choices)
-        ci = 0
-        for idx in range(len(choices)):
-            if choices[idx] == correct:
-                ci = idx
-                break
-        cat = decode_html(r.get("category", ""))
-        diff = r.get("difficulty", "easy")
-        qs.append({
-            "q": q,
-            "choices": choices,
-            "ci": ci,
-            "cat": cat,
-            "diff": diff,
-        })
-    return qs
-
-# --- Screen setup ---
+# Screen
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(COL_BG, 0)
-sc = scr
 
-# --- Home button ---
-hb = lv.btn(sc)
+# Home button
+hb = lv.btn(scr)
 hb.set_size(60, 26)
 hb.align(lv.ALIGN.TOP_LEFT, 4, 4)
-hb.set_style_bg_color(COL_ACCENT, 0)
+hb.set_style_bg_color(COL_AC, 0)
 hb.set_style_radius(6, 0)
 hl = lv.label(hb)
 hl.set_text("< Home")
-hl.set_style_text_color(COL_TEXT, 0)
+hl.set_style_text_color(COL_TX, 0)
 hl.center()
 
 def dq(t):
@@ -259,331 +239,340 @@ def oh(evt):
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
-# --- Title ---
-title_lbl = lv.label(scr)
-title_lbl.set_text("Trivia Quiz")
-title_lbl.set_style_text_color(COL_TEXT, 0)
-title_lbl.align(lv.ALIGN.TOP_MID, 0, 6)
+# Title
+tl = lv.label(scr)
+tl.set_text("Trivia Quiz")
+tl.set_style_text_color(COL_TX, 0)
+tl.align(lv.ALIGN.TOP_MID, 0, 6)
 
-# --- Score ---
-score_lbl = lv.label(scr)
-score_lbl.set_text("")
-score_lbl.set_style_text_color(COL_DIM, 0)
-score_lbl.align(lv.ALIGN.TOP_RIGHT, -8, 8)
+# Score label
+slbl = lv.label(scr)
+slbl.set_text("")
+slbl.set_style_text_color(COL_DM, 0)
+slbl.align(lv.ALIGN.TOP_RIGHT, -8, 8)
 
-# --- Category label ---
-cat_lbl = lv.label(scr)
-cat_lbl.set_text("")
-cat_lbl.set_style_text_color(COL_DIM, 0)
-cat_lbl.align(lv.ALIGN.TOP_MID, 0, 28)
+# Category label
+clbl = lv.label(scr)
+clbl.set_text("")
+clbl.set_style_text_color(COL_DM, 0)
+clbl.align(lv.ALIGN.TOP_MID, 0, 28)
 
-# --- Question area ---
-q_box = lv.obj(scr)
-q_box.set_size(300, 100)
-q_box.align(lv.ALIGN.TOP_MID, 0, 46)
-q_box.set_style_bg_color(COL_ACCENT, 0)
-q_box.set_style_border_width(0, 0)
-q_box.set_style_radius(BTN_RADIUS, 0)
-q_box.clear_flag(lv.obj.FLAG.SCROLLABLE)
+# Question box
+qbox = lv.obj(scr)
+qbox.set_size(300, 100)
+qbox.align(lv.ALIGN.TOP_MID, 0, 46)
+qbox.set_style_bg_color(COL_AC, 0)
+qbox.set_style_border_width(0, 0)
+qbox.set_style_radius(10, 0)
+qbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
-q_lbl = lv.label(q_box)
-q_lbl.set_text("Chargement...")
-q_lbl.set_style_text_color(COL_TEXT, 0)
-q_lbl.align(lv.ALIGN.TOP_LEFT, 10, 8)
+qlbl = lv.label(qbox)
+qlbl.set_text("Chargement...")
+qlbl.set_style_text_color(COL_TX, 0)
+qlbl.align(lv.ALIGN.TOP_LEFT, 10, 8)
 
-# --- Answer buttons ---
-ans_btns = []
-ans_lbls = []
+# Answer buttons
+abtns = []
+albls = []
 for i in range(4):
     b = lv.btn(scr)
     b.set_size(296, 48)
     by = 154 + i * 56
     b.align(lv.ALIGN.TOP_MID, 0, by)
-    b.set_style_bg_color(COL_BTN, 0)
-    b.set_style_radius(BTN_RADIUS, 0)
-    b.set_style_border_color(COL_DIM, 0)
+    b.set_style_bg_color(COL_AC, 0)
+    b.set_style_radius(10, 0)
+    b.set_style_border_color(COL_DM, 0)
     b.set_style_border_width(1, 0)
-    l = lv.label(b)
-    l.set_text("")
-    l.set_style_text_color(COL_TEXT, 0)
-    l.center()
-    ans_btns.append(b)
-    ans_lbls.append(l)
+    la = lv.label(b)
+    la.set_text("")
+    la.set_style_text_color(COL_TX, 0)
+    la.center()
+    abtns.append(b)
+    albls.append(la)
 
-# --- Feedback label ---
-fb_lbl = lv.label(scr)
-fb_lbl.set_text("")
-fb_lbl.set_style_text_color(COL_TEXT, 0)
-fb_lbl.align(lv.ALIGN.TOP_MID, 0, 382)
+# Feedback label
+fblbl = lv.label(scr)
+fblbl.set_text("")
+fblbl.set_style_text_color(COL_TX, 0)
+fblbl.align(lv.ALIGN.TOP_MID, 0, 382)
 
-# --- Next button ---
-next_btn = lv.btn(scr)
-next_btn.set_size(140, 40)
-next_btn.align(lv.ALIGN.TOP_MID, 0, 406)
-next_btn.set_style_bg_color(COL_HIGHLIGHT, 0)
-next_btn.set_style_radius(BTN_RADIUS, 0)
-next_btn.add_flag(lv.obj.FLAG.HIDDEN)
+# Next button
+nbtn = lv.btn(scr)
+nbtn.set_size(140, 40)
+nbtn.align(lv.ALIGN.TOP_MID, 0, 406)
+nbtn.set_style_bg_color(COL_HL, 0)
+nbtn.set_style_radius(10, 0)
+nbtn.add_flag(lv.obj.FLAG.HIDDEN)
+nlbl = lv.label(nbtn)
+nlbl.set_text("Suivant >")
+nlbl.set_style_text_color(COL_TX, 0)
+nlbl.center()
 
-next_lbl = lv.label(next_btn)
-next_lbl.set_text("Suivant >")
-next_lbl.set_style_text_color(COL_TEXT, 0)
-next_lbl.center()
+# Menu container
+mnu = lv.obj(scr)
+mnu.set_size(SCR_W, SCR_H)
+mnu.align(lv.ALIGN.TOP_LEFT, 0, 0)
+mnu.set_style_bg_color(COL_BG, 0)
+mnu.set_style_border_width(0, 0)
+mnu.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
-# --- Menu container ---
-menu_box = lv.obj(scr)
-menu_box.set_size(SCR_W, SCR_H)
-menu_box.align(lv.ALIGN.TOP_LEFT, 0, 0)
-menu_box.set_style_bg_color(COL_BG, 0)
-menu_box.set_style_border_width(0, 0)
-menu_box.clear_flag(lv.obj.FLAG.SCROLLABLE)
+mtl = lv.label(mnu)
+mtl.set_text("Trivia Quiz")
+mtl.set_style_text_color(COL_TX, 0)
+mtl.align(lv.ALIGN.TOP_MID, 0, 40)
 
-menu_title = lv.label(menu_box)
-menu_title.set_text("Trivia Quiz")
-menu_title.set_style_text_color(COL_TEXT, 0)
-menu_title.align(lv.ALIGN.TOP_MID, 0, 40)
+msl = lv.label(mnu)
+msl.set_text("Choisis une categorie :")
+msl.set_style_text_color(COL_DM, 0)
+msl.align(lv.ALIGN.TOP_MID, 0, 70)
 
-menu_sub = lv.label(menu_box)
-menu_sub.set_text("Choisis une categorie :")
-menu_sub.set_style_text_color(COL_DIM, 0)
-menu_sub.align(lv.ALIGN.TOP_MID, 0, 70)
-
-# Categories: id, name
-cats = [
-    (9  , "Culture G."),
-    (17 , "Sciences"),
-    (21 , "Sports"),
-    (23 , "Histoire"),
-    (11 , "Cinema"),
-    (12 , "Musique"),
-    (15 , "Jeux Video"),
-    (18 , "Informatique"),
-]
-
-cat_id = 9
-diff_str = "easy"
-
-menu_cat_btns = []
-for ci in range(len(cats)):
-    cb = lv.btn(menu_box)
+# Category buttons
+mcbs = []
+for ci in range(8):
+    cb = lv.btn(mnu)
     cb.set_size(130, 36)
     col = ci % 2
     row = ci // 2
     cx = 42 + col * 148
     cy = 100 + row * 44
     cb.align(lv.ALIGN.TOP_LEFT, cx, cy)
-    cb.set_style_bg_color(COL_BTN, 0)
+    cb.set_style_bg_color(COL_AC, 0)
     cb.set_style_radius(8, 0)
-    cb.set_style_border_color(COL_HIGHLIGHT, 0)
+    cb.set_style_border_color(COL_HL, 0)
     cb.set_style_border_width(1, 0)
     cl = lv.label(cb)
-    cl.set_text(cats[ci][1])
-    cl.set_style_text_color(COL_TEXT, 0)
+    cl.set_text(cnms[ci])
+    cl.set_style_text_color(COL_TX, 0)
     cl.center()
-    menu_cat_btns.append(cb)
+    mcbs.append(cb)
 
-# Difficulty selector
-diff_label = lv.label(menu_box)
-diff_label.set_text("Difficulte :")
-diff_label.set_style_text_color(COL_DIM, 0)
-diff_label.align(lv.ALIGN.TOP_MID, 0, 282)
+# Difficulty label
+dll = lv.label(mnu)
+dll.set_text("Difficulte :")
+dll.set_style_text_color(COL_DM, 0)
+dll.align(lv.ALIGN.TOP_MID, 0, 282)
 
-diffs = ["easy", "medium", "hard"]
-diff_names = ["Facile", "Moyen", "Difficile"]
-diff_btns = []
-diff_lbls_ui = []
-
+# Difficulty buttons
+dstrs = ["easy", "medium", "hard"]
+dnms = ["Facile", "Moyen", "Difficile"]
+dbs = []
 for di in range(3):
-    db = lv.btn(menu_box)
+    db = lv.btn(mnu)
     db.set_size(90, 34)
     dx = 18 + di * 98
     db.align(lv.ALIGN.TOP_LEFT, dx, 306)
     db.set_style_radius(8, 0)
     db.set_style_border_width(1, 0)
     if di == 0:
-        db.set_style_bg_color(COL_HIGHLIGHT, 0)
-        db.set_style_border_color(COL_CORRECT, 0)
+        db.set_style_bg_color(COL_HL, 0)
+        db.set_style_border_color(COL_OK, 0)
     else:
-        db.set_style_bg_color(COL_BTN, 0)
-        db.set_style_border_color(COL_HIGHLIGHT, 0)
-    dl = lv.label(db)
-    dl.set_text(diff_names[di])
-    dl.set_style_text_color(COL_TEXT, 0)
-    dl.center()
-    diff_btns.append(db)
-    diff_lbls_ui.append(dl)
+        db.set_style_bg_color(COL_AC, 0)
+        db.set_style_border_color(COL_HL, 0)
+    dbl = lv.label(db)
+    dbl.set_text(dnms[di])
+    dbl.set_style_text_color(COL_TX, 0)
+    dbl.center()
+    dbs.append(db)
 
 # Play button
-play_btn = lv.btn(menu_box)
-play_btn.set_size(200, 46)
-play_btn.align(lv.ALIGN.TOP_MID, 0, 366)
-play_btn.set_style_bg_color(COL_CORRECT, 0)
-play_btn.set_style_radius(BTN_RADIUS, 0)
-play_lbl = lv.label(play_btn)
-play_lbl.set_text("Jouer !")
-play_lbl.set_style_text_color(lv.color_white(), 0)
-play_lbl.center()
+pbtn = lv.btn(mnu)
+pbtn.set_size(200, 46)
+pbtn.align(lv.ALIGN.TOP_MID, 0, 366)
+pbtn.set_style_bg_color(COL_OK, 0)
+pbtn.set_style_radius(10, 0)
+plbl = lv.label(pbtn)
+plbl.set_text("Jouer !")
+plbl.set_style_text_color(COL_TX, 0)
+plbl.center()
 
-# --- Category selection ---
-def make_cat_cb(idx):
-    def cb(evt, idx=idx):
-        global cat_id
-        cat_id = cats[idx][0]
-        for ci2 in range(len(cats)):
-            if ci2 == idx:
-                menu_cat_btns[ci2].set_style_bg_color(
-                    COL_HIGHLIGHT, 0)
-                menu_cat_btns[ci2].set_style_border_color(
-                    COL_CORRECT, 0)
-            else:
-                menu_cat_btns[ci2].set_style_bg_color(
-                    COL_BTN, 0)
-                menu_cat_btns[ci2].set_style_border_color(
-                    COL_HIGHLIGHT, 0)
-    return cb
+# Select category
+def sel_cat(idx):
+    global cid
+    cid = cids[idx]
+    for i in range(8):
+        if i == idx:
+            mcbs[i].set_style_bg_color(COL_HL, 0)
+            mcbs[i].set_style_border_color(COL_OK, 0)
+        else:
+            mcbs[i].set_style_bg_color(COL_AC, 0)
+            mcbs[i].set_style_border_color(COL_HL, 0)
 
-for ci in range(len(cats)):
-    menu_cat_btns[ci].add_event_cb(
-        make_cat_cb(ci), lv.EVENT.CLICKED, None)
+def cc0(evt):
+    sel_cat(0)
 
-# --- Difficulty selection ---
-def make_diff_cb(idx):
-    def cb(evt, idx=idx):
-        global diff_str
-        diff_str = diffs[idx]
-        for di2 in range(3):
-            if di2 == idx:
-                diff_btns[di2].set_style_bg_color(
-                    COL_HIGHLIGHT, 0)
-                diff_btns[di2].set_style_border_color(
-                    COL_CORRECT, 0)
-            else:
-                diff_btns[di2].set_style_bg_color(
-                    COL_BTN, 0)
-                diff_btns[di2].set_style_border_color(
-                    COL_HIGHLIGHT, 0)
-    return cb
+def cc1(evt):
+    sel_cat(1)
 
-for di in range(3):
-    diff_btns[di].add_event_cb(
-        make_diff_cb(di), lv.EVENT.CLICKED, None)
+def cc2(evt):
+    sel_cat(2)
 
-# --- Show / hide views ---
+def cc3(evt):
+    sel_cat(3)
+
+def cc4(evt):
+    sel_cat(4)
+
+def cc5(evt):
+    sel_cat(5)
+
+def cc6(evt):
+    sel_cat(6)
+
+def cc7(evt):
+    sel_cat(7)
+
+mcbs[0].add_event_cb(cc0, lv.EVENT.CLICKED, 0)
+mcbs[1].add_event_cb(cc1, lv.EVENT.CLICKED, 0)
+mcbs[2].add_event_cb(cc2, lv.EVENT.CLICKED, 0)
+mcbs[3].add_event_cb(cc3, lv.EVENT.CLICKED, 0)
+mcbs[4].add_event_cb(cc4, lv.EVENT.CLICKED, 0)
+mcbs[5].add_event_cb(cc5, lv.EVENT.CLICKED, 0)
+mcbs[6].add_event_cb(cc6, lv.EVENT.CLICKED, 0)
+mcbs[7].add_event_cb(cc7, lv.EVENT.CLICKED, 0)
+
+# Select difficulty
+def sel_dif(idx):
+    global dif
+    dif = dstrs[idx]
+    for i in range(3):
+        if i == idx:
+            dbs[i].set_style_bg_color(COL_HL, 0)
+            dbs[i].set_style_border_color(COL_OK, 0)
+        else:
+            dbs[i].set_style_bg_color(COL_AC, 0)
+            dbs[i].set_style_border_color(COL_HL, 0)
+
+def dc0(evt):
+    sel_dif(0)
+
+def dc1(evt):
+    sel_dif(1)
+
+def dc2(evt):
+    sel_dif(2)
+
+dbs[0].add_event_cb(dc0, lv.EVENT.CLICKED, 0)
+dbs[1].add_event_cb(dc1, lv.EVENT.CLICKED, 0)
+dbs[2].add_event_cb(dc2, lv.EVENT.CLICKED, 0)
+
+# Show/hide views
 def show_menu():
-    menu_box.clear_flag(lv.obj.FLAG.HIDDEN)
-    for b in ans_btns:
-        b.add_flag(lv.obj.FLAG.HIDDEN)
-    q_box.add_flag(lv.obj.FLAG.HIDDEN)
-    next_btn.add_flag(lv.obj.FLAG.HIDDEN)
-    fb_lbl.set_text("")
-    score_lbl.set_text("")
-    cat_lbl.set_text("")
-    q_lbl.set_text("")
+    mnu.clear_flag(lv.obj.FLAG.HIDDEN)
+    for i in range(4):
+        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+    qbox.add_flag(lv.obj.FLAG.HIDDEN)
+    nbtn.add_flag(lv.obj.FLAG.HIDDEN)
+    fblbl.set_text("")
+    slbl.set_text("")
+    clbl.set_text("")
+    qlbl.set_text("")
 
 def show_quiz():
-    menu_box.add_flag(lv.obj.FLAG.HIDDEN)
-    for b in ans_btns:
-        b.clear_flag(lv.obj.FLAG.HIDDEN)
-    q_box.clear_flag(lv.obj.FLAG.HIDDEN)
+    mnu.add_flag(lv.obj.FLAG.HIDDEN)
+    for i in range(4):
+        abtns[i].clear_flag(lv.obj.FLAG.HIDDEN)
+    qbox.clear_flag(lv.obj.FLAG.HIDDEN)
 
-# --- Display a question ---
-def show_question():
-    global answered
-    answered = False
-    if qidx >= len(questions):
+# Display a question
+def show_q():
+    global aok
+    aok = False
+    if qi >= len(q_txt):
         show_end()
         return
-    qd = questions[qidx]
-    q_lbl.set_text(qd["q"])
-    cat_lbl.set_text(qd["cat"])
-    score_lbl.set_text(str(qidx + 1) + "/" + str(len(questions)))
-    fb_lbl.set_text("")
-    next_btn.add_flag(lv.obj.FLAG.HIDDEN)
-    nchoices = len(qd["choices"])
+    qlbl.set_text(q_txt[qi])
+    clbl.set_text(q_cat[qi])
+    slbl.set_text(str(qi + 1) + "/" + str(len(q_txt)))
+    fblbl.set_text("")
+    nbtn.add_flag(lv.obj.FLAG.HIDDEN)
+    albls[0].set_text(q_a0[qi])
+    albls[1].set_text(q_a1[qi])
+    albls[2].set_text(q_a2[qi])
+    albls[3].set_text(q_a3[qi])
     for i in range(4):
-        if i < nchoices:
-            ans_lbls[i].set_text(qd["choices"][i])
-            ans_btns[i].clear_flag(lv.obj.FLAG.HIDDEN)
-            ans_btns[i].set_style_bg_color(COL_BTN, 0)
-            ans_btns[i].set_style_border_color(COL_DIM, 0)
-            ans_lbls[i].set_style_text_color(COL_TEXT, 0)
-        else:
-            ans_btns[i].add_flag(lv.obj.FLAG.HIDDEN)
+        abtns[i].clear_flag(lv.obj.FLAG.HIDDEN)
+        abtns[i].set_style_bg_color(COL_AC, 0)
+        abtns[i].set_style_border_color(COL_DM, 0)
+        albls[i].set_style_text_color(COL_TX, 0)
 
-# --- Handle answer click ---
-def make_ans_cb(idx):
-    def cb(evt, idx=idx):
-        global answered, score
-        if answered:
-            return
-        answered = True
-        qd = questions[qidx]
-        ci = qd["ci"]
-        if idx == ci:
-            score = score + 1
-            fb_lbl.set_text("Correct !")
-            fb_lbl.set_style_text_color(COL_CORRECT, 0)
-        else:
-            fb_lbl.set_text("Faux !")
-            fb_lbl.set_style_text_color(COL_WRONG, 0)
-        # Color buttons
-        nchoices = len(qd["choices"])
-        for i in range(nchoices):
-            if i == ci:
-                ans_btns[i].set_style_bg_color(COL_CORRECT, 0)
-                ans_lbls[i].set_style_text_color(
-                    lv.color_white(), 0)
-            elif i == idx:
-                ans_btns[i].set_style_bg_color(COL_WRONG, 0)
-                ans_lbls[i].set_style_text_color(
-                    lv.color_white(), 0)
-        next_btn.clear_flag(lv.obj.FLAG.HIDDEN)
-    return cb
+# Check answer
+def chk_ans(idx):
+    global aok, scv
+    if aok:
+        return
+    aok = True
+    ci = q_ci[qi]
+    if idx == ci:
+        scv = scv + 1
+        fblbl.set_text("Correct !")
+        fblbl.set_style_text_color(COL_OK, 0)
+    else:
+        fblbl.set_text("Faux !")
+        fblbl.set_style_text_color(COL_NO, 0)
+    for i in range(4):
+        if i == ci:
+            abtns[i].set_style_bg_color(COL_OK, 0)
+            albls[i].set_style_text_color(COL_TX, 0)
+        elif i == idx:
+            abtns[i].set_style_bg_color(COL_NO, 0)
+            albls[i].set_style_text_color(COL_TX, 0)
+    nbtn.clear_flag(lv.obj.FLAG.HIDDEN)
 
-for i in range(4):
-    ans_btns[i].add_event_cb(
-        make_ans_cb(i), lv.EVENT.CLICKED, None)
+# Answer callbacks (no closures)
+def ac0(evt):
+    chk_ans(0)
 
-# --- Next question ---
-def on_next(evt):
-    global qidx
-    qidx = qidx + 1
-    show_question()
+def ac1(evt):
+    chk_ans(1)
 
-next_btn.add_event_cb(on_next, lv.EVENT.CLICKED, None)
+def ac2(evt):
+    chk_ans(2)
 
-# --- End screen ---
+def ac3(evt):
+    chk_ans(3)
+
+abtns[0].add_event_cb(ac0, lv.EVENT.CLICKED, 0)
+abtns[1].add_event_cb(ac1, lv.EVENT.CLICKED, 0)
+abtns[2].add_event_cb(ac2, lv.EVENT.CLICKED, 0)
+abtns[3].add_event_cb(ac3, lv.EVENT.CLICKED, 0)
+
+# Next question
+def on_nxt(evt):
+    global qi
+    qi = qi + 1
+    show_q()
+
+nbtn.add_event_cb(on_nxt, lv.EVENT.CLICKED, 0)
+
+# End screen
 def show_end():
-    for b in ans_btns:
-        b.add_flag(lv.obj.FLAG.HIDDEN)
-    q_box.add_flag(lv.obj.FLAG.HIDDEN)
-    next_btn.add_flag(lv.obj.FLAG.HIDDEN)
-    cat_lbl.set_text("")
-    fb_lbl.set_text("")
-
-    n = len(questions)
+    for i in range(4):
+        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+    qbox.add_flag(lv.obj.FLAG.HIDDEN)
+    nbtn.add_flag(lv.obj.FLAG.HIDDEN)
+    clbl.set_text("")
+    fblbl.set_text("")
+    n = len(q_txt)
     pct = 0
     if n > 0:
-        pct = (score * 100) // n
-
-    mbox = lv.obj(scr)
-    mbox.set_size(260, 200)
-    mbox.center()
-    mbox.set_style_bg_color(COL_ACCENT, 0)
-    mbox.set_style_border_color(COL_HIGHLIGHT, 0)
-    mbox.set_style_border_width(2, 0)
-    mbox.set_style_radius(14, 0)
-    mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
-
-    et = lv.label(mbox)
+        pct = (scv * 100) // n
+    eb = lv.obj(scr)
+    eb.set_size(260, 200)
+    eb.center()
+    eb.set_style_bg_color(COL_AC, 0)
+    eb.set_style_border_color(COL_HL, 0)
+    eb.set_style_border_width(2, 0)
+    eb.set_style_radius(14, 0)
+    eb.clear_flag(lv.obj.FLAG.SCROLLABLE)
+    et = lv.label(eb)
     et.set_text("Partie terminee !")
-    et.set_style_text_color(COL_TEXT, 0)
+    et.set_style_text_color(COL_TX, 0)
     et.align(lv.ALIGN.TOP_MID, 0, 14)
-
-    es = lv.label(mbox)
-    es.set_text(str(score) + " / " + str(n) + "  (" + str(pct) + "%)")
-    es.set_style_text_color(COL_CORRECT, 0)
+    es = lv.label(eb)
+    es.set_text(str(scv) + " / " + str(n) + "  (" + str(pct) + "%)")
+    es.set_style_text_color(COL_OK, 0)
     es.align(lv.ALIGN.TOP_MID, 0, 46)
-
     if pct == 100:
         msg = "Parfait !"
     elif pct >= 60:
@@ -592,167 +581,135 @@ def show_end():
         msg = "Pas mal."
     else:
         msg = "Courage !"
-    em = lv.label(mbox)
+    em = lv.label(eb)
     em.set_text(msg)
-    em.set_style_text_color(COL_DIM, 0)
+    em.set_style_text_color(COL_DM, 0)
     em.align(lv.ALIGN.TOP_MID, 0, 76)
-
-    rb = lv.btn(mbox)
+    rb = lv.btn(eb)
     rb.set_size(110, 36)
     rb.align(lv.ALIGN.BOTTOM_LEFT, 10, -14)
-    rb.set_style_bg_color(COL_CORRECT, 0)
+    rb.set_style_bg_color(COL_OK, 0)
     rb.set_style_radius(8, 0)
     rl = lv.label(rb)
     rl.set_text("Rejouer")
-    rl.set_style_text_color(lv.color_white(), 0)
+    rl.set_style_text_color(COL_TX, 0)
     rl.center()
-
-    mb = lv.btn(mbox)
-    mb.set_size(110, 36)
-    mb.align(lv.ALIGN.BOTTOM_RIGHT, -10, -14)
-    mb.set_style_bg_color(COL_HIGHLIGHT, 0)
-    mb.set_style_radius(8, 0)
-    ml = lv.label(mb)
+    mb2 = lv.btn(eb)
+    mb2.set_size(110, 36)
+    mb2.align(lv.ALIGN.BOTTOM_RIGHT, -10, -14)
+    mb2.set_style_bg_color(COL_HL, 0)
+    mb2.set_style_radius(8, 0)
+    ml = lv.label(mb2)
     ml.set_text("Menu")
-    ml.set_style_text_color(COL_TEXT, 0)
+    ml.set_style_text_color(COL_TX, 0)
     ml.center()
-
-    def on_replay(evt):
-        mbox._del()
+    def on_rep(evt):
+        eb._del()
         start_game()
-
-    def on_menu(evt):
-        mbox._del()
+    def on_mn(evt):
+        eb._del()
         show_menu()
+    rb.add_event_cb(on_rep, lv.EVENT.CLICKED, 0)
+    mb2.add_event_cb(on_mn, lv.EVENT.CLICKED, 0)
 
-    rb.add_event_cb(on_replay, lv.EVENT.CLICKED, None)
-    mb.add_event_cb(on_menu, lv.EVENT.CLICKED, None)
-
-# --- Fetch & start game ---
-def fetch_questions(t):
-    global questions, qidx, score, total, fetch_timer, _rseed
+# Fetch questions
+def do_fetch(t):
+    global q_txt, q_a0, q_a1, q_a2, q_a3, q_ci, q_cat
+    global qi, scv, ft, _rs
     t._del()
-    fetch_timer = 0
-    
-    url = API_BASE + "?amount=" + str(Q_PER_ROUND)
-    url = url + "&category=" + str(cat_id)
-    url = url + "&difficulty=" + diff_str
+    ft = 0
+    url = "http://opentdb.com/api.php?amount=" + str(QMAX)
+    url = url + "&category=" + str(cid)
+    url = url + "&difficulty=" + dif
     url = url + "&type=multiple"
-    
-    questions = []
+    q_txt = []
+    q_a0 = []
+    q_a1 = []
+    q_a2 = []
+    q_a3 = []
+    q_ci = []
+    q_cat = []
     raw = lv.http_get(url)
-    
     if not raw:
-        q_lbl.set_text("Erreur reseau.\nVerifie le WiFi.")
-        score_lbl.set_text("")
+        qlbl.set_text("Erreur reseau.")
+        slbl.set_text("")
         return
-    
     if len(raw) < 10:
-        q_lbl.set_text("Reponse vide.\nReessaie.")
-        score_lbl.set_text("")
+        qlbl.set_text("Reponse vide.")
+        slbl.set_text("")
         return
-    
-    parsed = parse_json(raw)
-    
-    if not parsed:
-        q_lbl.set_text("Erreur parsing.\nReessaie.")
-        score_lbl.set_text("")
+    data = jparse(raw)
+    if not data:
+        qlbl.set_text("Erreur parsing.")
+        slbl.set_text("")
         return
-    
-    rc = 1
-    if "response_code" in parsed:
-        rc = parsed["response_code"]
-    
+    rc = data["response_code"]
     if rc != 0:
-        q_lbl.set_text("Erreur API.\nReessaie.")
-        score_lbl.set_text("")
+        qlbl.set_text("Erreur API.")
+        slbl.set_text("")
         return
-    
-    results = []
-    if "results" in parsed:
-        results = parsed["results"]
-    
-    if not results or len(results) == 0:
-        q_lbl.set_text("Aucune question.\nReessaie.")
-        score_lbl.set_text("")
+    results = data["results"]
+    if not results:
+        qlbl.set_text("Aucune question.")
+        slbl.set_text("")
         return
-    
-    for r in results:
-        if not r:
-            continue
-        q = ""
-        if "question" in r:
-            q = decode_html(r["question"])
-        correct = ""
-        if "correct_answer" in r:
-            correct = decode_html(r["correct_answer"])
-        inc = []
-        if "incorrect_answers" in r:
+    ri = 0
+    while ri < len(results):
+        r = results[ri]
+        ri = ri + 1
+        if r:
+            q = dhtml(r["question"])
+            cor = dhtml(r["correct_answer"])
             inc = r["incorrect_answers"]
-        
-        if not q or not correct or len(inc) < 3:
-            continue
-        
-        choices = [correct]
-        for a in inc:
-            choices.append(decode_html(a))
-        
-        _rseed = _rseed + len(q)
-        shuffle(choices)
-        
-        ci = 0
-        for idx in range(len(choices)):
-            if choices[idx] == correct:
-                ci = idx
-                break
-        
-        cat = ""
-        if "category" in r:
-            cat = decode_html(r["category"])
-        diff = "easy"
-        if "difficulty" in r:
-            diff = r["difficulty"]
-        
-        questions.append({
-            "q": q,
-            "choices": choices,
-            "ci": ci,
-            "cat": cat,
-            "diff": diff,
-        })
-    
-    if len(questions) == 0:
-        q_lbl.set_text("Erreur traitement.\nReessaie.")
-        score_lbl.set_text("")
+            if q and cor and len(inc) >= 3:
+                ch = [cor, dhtml(inc[0]), dhtml(inc[1]), dhtml(inc[2])]
+                _rs = _rs + len(q)
+                shuf(ch)
+                ci = 0
+                if ch[1] == cor:
+                    ci = 1
+                elif ch[2] == cor:
+                    ci = 2
+                elif ch[3] == cor:
+                    ci = 3
+                cat = dhtml(r["category"])
+                q_txt.append(q)
+                q_a0.append(ch[0])
+                q_a1.append(ch[1])
+                q_a2.append(ch[2])
+                q_a3.append(ch[3])
+                q_ci.append(ci)
+                q_cat.append(cat)
+    if len(q_txt) == 0:
+        qlbl.set_text("Erreur traitement.")
+        slbl.set_text("")
         return
-    
-    qidx = 0
-    score = 0
-    total = len(questions)
-    show_question()
+    qi = 0
+    scv = 0
+    show_q()
 
 def start_game():
-    global fetch_timer
+    global ft
     show_quiz()
-    q_lbl.set_text("Chargement...")
-    score_lbl.set_text("")
-    cat_lbl.set_text("")
-    fb_lbl.set_text("")
-    next_btn.add_flag(lv.obj.FLAG.HIDDEN)
-    for b in ans_btns:
-        b.set_style_bg_color(COL_BTN, 0)
-        b.add_flag(lv.obj.FLAG.HIDDEN)
-    if fetch_timer != 0:
-        fetch_timer._del()
-        fetch_timer = 0
-    fetch_timer = lv.timer_create_basic()
-    fetch_timer.set_period(100)
-    fetch_timer.set_cb(fetch_questions)
+    qlbl.set_text("Chargement...")
+    slbl.set_text("")
+    clbl.set_text("")
+    fblbl.set_text("")
+    nbtn.add_flag(lv.obj.FLAG.HIDDEN)
+    for i in range(4):
+        abtns[i].set_style_bg_color(COL_AC, 0)
+        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+    if ft != 0:
+        ft._del()
+        ft = 0
+    ft = lv.timer_create_basic()
+    ft.set_period(100)
+    ft.set_cb(do_fetch)
 
 def on_play(evt):
     start_game()
 
-play_btn.add_event_cb(on_play, lv.EVENT.CLICKED, None)
+pbtn.add_event_cb(on_play, lv.EVENT.CLICKED, 0)
 
-# --- Initial state ---
+# Start with menu
 show_menu()

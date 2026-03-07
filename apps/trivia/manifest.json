@@ -3,7 +3,7 @@
     "name": "Trivia Quiz",
     "description": "Answer trivia questions from the Open Trivia Database. Multiple choice questions with score tracking, difficulty selection, and category support.",
     "author": "FallMarsisus",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "entry": "main.py",
     "category": "game"
 }
