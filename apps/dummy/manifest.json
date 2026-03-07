@@ -1,0 +1,9 @@
+{
+    "id": "dummy",
+    "name": "Demo HTTP",
+    "description": "Demo app showing HTTP GET request using the PikaPython environment. Fetches a random 5-letter word and displays it on screen.",
+    "author": "FallMarsisus",
+    "version": "1.0.0",
+    "entry": "main.py",
+    "category": "demo"
+}
