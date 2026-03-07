@@ -6,7 +6,7 @@ SCR_H = 480
 BTN_RADIUS = 10
 Q_PER_ROUND = 5
 
-API_BASE = "https://opentdb.com/api.php"
+API_BASE = "http://opentdb.com/api.php"
 
 # ─── Colors (palette only, no color_hex) ────────────────────
 COL_BG = lv.color_black()
@@ -25,6 +25,7 @@ score = 0
 total = 0
 answered = False
 qt = 0
+fetch_timer = 0
 
 # ─── HTML entity decoder (minimal) ─────────────────────────
 def decode_html(s):
@@ -632,8 +633,10 @@ def show_end():
 
 # ─── Fetch & start game ──────────────────────────────────
 def fetch_questions(t):
-    global questions, qidx, score, total
-    t._del()
+    global questions, qidx, score, total, fetch_timer
+    if t:
+        t._del()
+    fetch_timer = 0
     url = API_BASE + "?amount=" + str(Q_PER_ROUND)
     url = url + "&category=" + str(cat_id)
     url = url + "&difficulty=" + diff_str
@@ -653,6 +656,7 @@ def fetch_questions(t):
     show_question()
 
 def start_game():
+    global fetch_timer
     show_quiz()
     q_lbl.set_text("Chargement...")
     score_lbl.set_text("")
@@ -662,9 +666,10 @@ def start_game():
     for b in ans_btns:
         b.set_style_bg_color(COL_BTN, 0)
         b.add_flag(lv.obj.FLAG.HIDDEN)
-    ft = lv.timer_create_basic()
-    ft.set_period(100)
-    ft.set_cb(fetch_questions)
+    if fetch_timer != 0:
+        fetch_timer._del()
+        fetch_timer = 0
+    fetch_questions(0)
 
 def on_play(evt):
     start_game()
