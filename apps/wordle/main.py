@@ -77,15 +77,15 @@ def ct(b, l, le, c):
     if c == 2:
         b.set_style_bg_color(
             lv.palette_main(lv.PALETTE.GREEN), 0)
-        b.set_style_text_color(lv.color_white(), 0)
+        l.set_style_text_color(lv.color_white(), 0)
     elif c == 1:
         b.set_style_bg_color(
             lv.palette_main(lv.PALETTE.YELLOW), 0)
-        b.set_style_text_color(lv.color_black(), 0)
+        l.set_style_text_color(lv.color_black(), 0)
     else:
         b.set_style_bg_color(
             lv.palette_main(lv.PALETTE.GREY), 0)
-        b.set_style_text_color(lv.color_white(), 0)
+        l.set_style_text_color(lv.color_white(), 0)
 
 def kcs(t):
     global ktmr, kph
