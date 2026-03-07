@@ -21,6 +21,8 @@ game_over    = False
 
 # ── UI objects ──
 tile_labels = []
+key_btns = []
+key_vals = []
 scr = lv.scr_act()
 
 # ── Title ──
@@ -150,8 +152,20 @@ def submit_guess():
         set_status("Essai " + str(current_row + 1) + "/" + str(MAX_ROWS))
 
 def on_key_click(evt):
-    key = evt.get_user_data()
-    if not key:
+    btn = evt.get_target()
+    if not btn:
+        return
+
+    key = ""
+    i = 0
+    total = count_items(key_btns)
+    while i < total:
+        if key_btns[i] == btn:
+            key = key_vals[i]
+            break
+        i += 1
+
+    if key == "":
         return
 
     if key == "OK":
@@ -165,7 +179,9 @@ def make_key(key, x, y, w):
     kb = lv.btn(scr)
     kb.set_size(w, KEY_H)
     kb.align(lv.ALIGN.TOP_LEFT, x, y)
-    kb.add_event_cb(on_key_click, lv.EVENT.CLICKED, key)
+    key_btns.append(kb)
+    key_vals.append(key)
+    kb.add_event_cb(on_key_click, lv.EVENT.CLICKED, 0)
     kl = lv.label(kb)
     kl.set_text(key)
     kl.center()
