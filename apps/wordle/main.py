@@ -125,135 +125,32 @@ def sg():
     if ktmr != 0:
         ktmr._del()
         ktmr = 0
-    c0 = 0
-    c1 = 0
-    c2 = 0
-    c3 = 0
-    c4 = 0
-    r0 = target[0]
-    r1 = target[1]
-    r2 = target[2]
-    r3 = target[3]
-    r4 = target[4]
-    if guess[0] == target[0]:
-        c0 = 2
-        r0 = ""
-    if guess[1] == target[1]:
-        c1 = 2
-        r1 = ""
-    if guess[2] == target[2]:
-        c2 = 2
-        r2 = ""
-    if guess[3] == target[3]:
-        c3 = 2
-        r3 = ""
-    if guess[4] == target[4]:
-        c4 = 2
-        r4 = ""
-    if c0 == 0:
-        g = guess[0]
-        if r0 == g:
-            c0 = 1
-            r0 = ""
-        elif r1 == g:
-            c0 = 1
-            r1 = ""
-        elif r2 == g:
-            c0 = 1
-            r2 = ""
-        elif r3 == g:
-            c0 = 1
-            r3 = ""
-        elif r4 == g:
-            c0 = 1
-            r4 = ""
-    if c1 == 0:
-        g = guess[1]
-        if r0 == g:
-            c1 = 1
-            r0 = ""
-        elif r1 == g:
-            c1 = 1
-            r1 = ""
-        elif r2 == g:
-            c1 = 1
-            r2 = ""
-        elif r3 == g:
-            c1 = 1
-            r3 = ""
-        elif r4 == g:
-            c1 = 1
-            r4 = ""
-    if c2 == 0:
-        g = guess[2]
-        if r0 == g:
-            c2 = 1
-            r0 = ""
-        elif r1 == g:
-            c2 = 1
-            r1 = ""
-        elif r2 == g:
-            c2 = 1
-            r2 = ""
-        elif r3 == g:
-            c2 = 1
-            r3 = ""
-        elif r4 == g:
-            c2 = 1
-            r4 = ""
-    if c3 == 0:
-        g = guess[3]
-        if r0 == g:
-            c3 = 1
-            r0 = ""
-        elif r1 == g:
-            c3 = 1
-            r1 = ""
-        elif r2 == g:
-            c3 = 1
-            r2 = ""
-        elif r3 == g:
-            c3 = 1
-            r3 = ""
-        elif r4 == g:
-            c3 = 1
-            r4 = ""
-    if c4 == 0:
-        g = guess[4]
-        if r0 == g:
-            c4 = 1
-        elif r1 == g:
-            c4 = 1
-        elif r2 == g:
-            c4 = 1
-        elif r3 == g:
-            c4 = 1
-        elif r4 == g:
-            c4 = 1
+    # Au lieu des 120 lignes de if/elif pour c0, c1, c2...
+    c = [0, 0, 0, 0, 0]
+    r = [target[0], target[1], target[2], target[3], target[4]]
+
+    # 1. Vérifier les lettres bien placées (Vert)
+    for i in range(5):
+        if guess[i] == target[i]:
+            c[i] = 2
+            r[i] = ""
+
+    # 2. Vérifier les lettres mal placées (Jaune)
+    for i in range(5):
+        if c[i] == 0:
+            for j in range(5):
+                if r[j] != "" and guess[i] == r[j]:
+                    c[i] = 1
+                    r[j] = ""
+                    break
+
+    # Mise à jour de l'UI dans une boucle
     rl = tlbl[crow]
     rb = tbtn[crow]
-    ct(rb[0], rl[0], guess[0], c0)
-    ct(rb[1], rl[1], guess[1], c1)
-    ct(rb[2], rl[2], guess[2], c2)
-    ct(rb[3], rl[3], guess[3], c3)
-    ct(rb[4], rl[4], guess[4], c4)
-    kq0 = guess[0]
-    kq1 = guess[1]
-    kq2 = guess[2]
-    kq3 = guess[3]
-    kq4 = guess[4]
-    ks0 = c0 + 1
-    ks1 = c1 + 1
-    ks2 = c2 + 1
-    ks3 = c3 + 1
-    ks4 = c4 + 1
-    kph = 0
-    ktmr = lv.timer_create_basic()
-    ktmr.set_period(100)
-    ktmr.set_cb(kcs)
-    w = c0 == 2 and c1 == 2
-    w = w and c2 == 2
-    w = w and c3 == 2 and c4 == 2
+    for i in range(5):
+        ct(rb[i], rl[i], guess[i], c[i])
+
+    w = (c[0]==2 and c[1]==2 and c[2]==2 and c[3]==2 and c[4]==2)
     if w:
         sl.set_text("Bravo!")
         gover = True
