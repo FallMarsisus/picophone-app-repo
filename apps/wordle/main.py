@@ -150,6 +150,21 @@ def sg():
     for i in range(5):
         ct(rb[i], rl[i], guess[i], c[i])
 
+    kq0 = guess[0]
+    kq1 = guess[1]
+    kq2 = guess[2]
+    kq3 = guess[3]
+    kq4 = guess[4]
+    ks0 = c[0] + 1
+    ks1 = c[1] + 1
+    ks2 = c[2] + 1
+    ks3 = c[3] + 1
+    ks4 = c[4] + 1
+    kph = 0
+    ktmr = lv.timer_create_basic()
+    ktmr.set_period(80)
+    ktmr.set_cb(kcs)
+
     w = (c[0]==2 and c[1]==2 and c[2]==2 and c[3]==2 and c[4]==2)
     if w:
         sl.set_text("Bravo!")
