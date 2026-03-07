@@ -14,10 +14,6 @@ KEY_H = 26
 KEY_GAP = 3
 KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - KEY_GAP
 NUM_KEYS = 28
-COL_GREEN = lv.palette_main(lv.PALETTE.GREEN)
-COL_YELLOW = lv.palette_main(lv.PALETTE.YELLOW)
-COL_GREY = lv.palette_main(lv.PALETTE.GREY)
-COL_WHITE = lv.color_white()
 
 # --------------- Game state (module globals) ---------------
 # Store as char lists to avoid str_to_list allocations
@@ -29,6 +25,9 @@ game_over = False
 tile_labels = []
 tile_btn_rows = []
 key_btns = []
+kbd_queue = []
+kbd_idx = 0
+kbd_timer = 0
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -68,33 +67,42 @@ def delete_letter():
     guess[current_col] = ""
     tile_labels[current_row][current_col].set_text(" ")
 
-def color_tile(btn, lbl, letter, c):
+def color_one_tile(btn, lbl, letter, c):
     lbl.set_text(letter)
     if c == 2:
-        btn.set_style_bg_color(COL_GREEN, 0)
+        btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
     elif c == 1:
-        btn.set_style_bg_color(COL_YELLOW, 0)
+        btn.set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
     else:
-        btn.set_style_bg_color(COL_GREY, 0)
-    btn.set_style_text_color(COL_WHITE, 0)
+        btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+    btn.set_style_text_color(lv.color_white(), 0)
 
-def update_kbd(letter, ns):
-    for i in range(NUM_KEYS):
-        kb = key_btns[i]
-        if kb.text == letter:
-            if ns > kb.state:
-                kb.state = ns
-                if ns == 3:
-                    kb.btn.set_style_bg_color(COL_GREEN, 0)
-                elif ns == 2:
-                    kb.btn.set_style_bg_color(COL_YELLOW, 0)
-                else:
-                    kb.btn.set_style_bg_color(COL_GREY, 0)
-                kb.btn.set_style_text_color(COL_WHITE, 0)
-            break
+def kbd_color_step(t):
+    global kbd_timer, kbd_idx
+    if kbd_idx < 5:
+        item = kbd_queue[kbd_idx]
+        kbd_idx = kbd_idx + 1
+        letter = item[0]
+        ns = item[1]
+        for i in range(NUM_KEYS):
+            kb = key_btns[i]
+            if kb.text == letter:
+                if ns > kb.state:
+                    kb.state = ns
+                    if ns == 3:
+                        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+                    elif ns == 2:
+                        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+                    else:
+                        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
+                    kb.btn.set_style_text_color(lv.color_white(), 0)
+                break
+    else:
+        t._del()
+        kbd_timer = 0
 
 def submit_guess():
-    global current_row, current_col, game_over
+    global current_row, current_col, game_over, kbd_queue, kbd_idx, kbd_timer
     if current_col < WORD_LEN:
         status_lbl.set_text("5 lettres!")
         return
@@ -213,17 +221,17 @@ def submit_guess():
     # Apply colors to tiles
     row_lbl = tile_labels[current_row]
     row_btn = tile_btn_rows[current_row]
-    color_tile(row_btn[0], row_lbl[0], guess[0], c0)
-    color_tile(row_btn[1], row_lbl[1], guess[1], c1)
-    color_tile(row_btn[2], row_lbl[2], guess[2], c2)
-    color_tile(row_btn[3], row_lbl[3], guess[3], c3)
-    color_tile(row_btn[4], row_lbl[4], guess[4], c4)
-    # Update keyboard colors
-    update_kbd(guess[0], c0 + 1)
-    update_kbd(guess[1], c1 + 1)
-    update_kbd(guess[2], c2 + 1)
-    update_kbd(guess[3], c3 + 1)
-    update_kbd(guess[4], c4 + 1)
+    color_one_tile(row_btn[0], row_lbl[0], guess[0], c0)
+    color_one_tile(row_btn[1], row_lbl[1], guess[1], c1)
+    color_one_tile(row_btn[2], row_lbl[2], guess[2], c2)
+    color_one_tile(row_btn[3], row_lbl[3], guess[3], c3)
+    color_one_tile(row_btn[4], row_lbl[4], guess[4], c4)
+    # Deferred keyboard coloring (one key per timer tick)
+    kbd_queue = [[guess[0], c0 + 1], [guess[1], c1 + 1], [guess[2], c2 + 1], [guess[3], c3 + 1], [guess[4], c4 + 1]]
+    kbd_idx = 0
+    kbd_timer = lv.timer_create_basic()
+    kbd_timer.set_period(50)
+    kbd_timer.set_cb(kbd_color_step)
     # Win check
     if c0 == 2 and c1 == 2 and c2 == 2 and c3 == 2 and c4 == 2:
         status_lbl.set_text("Bravo!")
