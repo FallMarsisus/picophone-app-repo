@@ -212,22 +212,37 @@ def shuf(arr):
         i = i - 1
 
 class Tap:
-    def __init__(self, btn, fn, arg, has_arg):
+    def __init__(self, btn, kind, idx):
         self.btn = btn
-        self.fn = fn
-        self.arg = arg
-        self.has_arg = has_arg
+        self.kind = kind
+        self.idx = idx
         self.btn.clear_flag(lv.obj.FLAG.SCROLLABLE)
         self.btn.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
 
     def oc(self, e):
-        if self.has_arg:
-            self.fn(self.arg)
-        else:
-            self.fn()
+        if self.kind == "home":
+            oh(0)
+        elif self.kind == "cat":
+            sel_cat(self.idx)
+        elif self.kind == "dif":
+            sel_dif(self.idx)
+        elif self.kind == "ans":
+            chk_ans(self.idx)
+        elif self.kind == "next":
+            on_nxt(0)
+        elif self.kind == "play":
+            start_game()
+        elif self.kind == "replay":
+            if end_box != 0:
+                end_box._del()
+            replay_after_end()
+        elif self.kind == "menu":
+            if end_box != 0:
+                end_box._del()
+            menu_after_end()
 
-def add_tap(btn, fn, arg, has_arg):
-    t = Tap(btn, fn, arg, has_arg)
+def add_tap(btn, kind, idx):
+    t = Tap(btn, kind, idx)
     tap_refs.append(t)
 
 def bring_home_top():
@@ -677,20 +692,18 @@ def show_end():
     ml.set_text("Menu")
     ml.set_style_text_color(COL_TX, 0)
     ml.center()
-    add_tap(rb, end_replay_press, 0, 0)
-    add_tap(mb2, end_menu_press, 0, 0)
+    add_tap(rb, "replay", 0)
+    add_tap(mb2, "menu", 0)
 
-def end_replay_press():
+def replay_after_end():
     global end_box
     if end_box != 0:
-        end_box._del()
         end_box = 0
     start_game()
 
-def end_menu_press():
+def menu_after_end():
     global end_box
     if end_box != 0:
-        end_box._del()
         end_box = 0
     show_menu()
 
@@ -799,24 +812,24 @@ def on_play(evt):
 def play_press():
     on_play(0)
 
-add_tap(hb, home_press, 0, 0)
-add_tap(mcbs[0], cat_press, 0, 1)
-add_tap(mcbs[1], cat_press, 1, 1)
-add_tap(mcbs[2], cat_press, 2, 1)
-add_tap(mcbs[3], cat_press, 3, 1)
-add_tap(mcbs[4], cat_press, 4, 1)
-add_tap(mcbs[5], cat_press, 5, 1)
-add_tap(mcbs[6], cat_press, 6, 1)
-add_tap(mcbs[7], cat_press, 7, 1)
-add_tap(dbs[0], dif_press, 0, 1)
-add_tap(dbs[1], dif_press, 1, 1)
-add_tap(dbs[2], dif_press, 2, 1)
-add_tap(abtns[0], ans_press, 0, 1)
-add_tap(abtns[1], ans_press, 1, 1)
-add_tap(abtns[2], ans_press, 2, 1)
-add_tap(abtns[3], ans_press, 3, 1)
-add_tap(nbtn, next_press, 0, 0)
-add_tap(pbtn, play_press, 0, 0)
+add_tap(hb, "home", 0)
+add_tap(mcbs[0], "cat", 0)
+add_tap(mcbs[1], "cat", 1)
+add_tap(mcbs[2], "cat", 2)
+add_tap(mcbs[3], "cat", 3)
+add_tap(mcbs[4], "cat", 4)
+add_tap(mcbs[5], "cat", 5)
+add_tap(mcbs[6], "cat", 6)
+add_tap(mcbs[7], "cat", 7)
+add_tap(dbs[0], "dif", 0)
+add_tap(dbs[1], "dif", 1)
+add_tap(dbs[2], "dif", 2)
+add_tap(abtns[0], "ans", 0)
+add_tap(abtns[1], "ans", 1)
+add_tap(abtns[2], "ans", 2)
+add_tap(abtns[3], "ans", 3)
+add_tap(nbtn, "next", 0)
+add_tap(pbtn, "play", 0)
 
 # Start with menu
 show_menu()
