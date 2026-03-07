@@ -402,7 +402,10 @@ def df(t):
             cor = dhtml(r["correct_answer"])
             inc = r["incorrect_answers"]
             if q and cor and len(inc) >= 3:
-                ch = [cor, dhtml(inc[0]), dhtml(inc[1]), dhtml(inc[2])]
+                i0 = dhtml(inc[0])
+                i1 = dhtml(inc[1])
+                i2 = dhtml(inc[2])
+                ch = [cor, i0, i1, i2]
                 _rs = _rs + len(q)
                 shuf(ch)
                 ci = 0
