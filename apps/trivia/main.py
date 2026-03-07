@@ -274,10 +274,11 @@ qlbl.align(lv.ALIGN.TOP_LEFT, 10, 8)
 # Answer buttons
 abtns = []
 albls = []
-for i in range(4):
+ai = 0
+while ai < 4:
     b = lv.btn(scr)
     b.set_size(296, 48)
-    by = 154 + i * 56
+    by = 154 + ai * 56
     b.align(lv.ALIGN.TOP_MID, 0, by)
     b.set_style_bg_color(COL_AC, 0)
     b.set_style_radius(10, 0)
@@ -289,6 +290,7 @@ for i in range(4):
     la.center()
     abtns.append(b)
     albls.append(la)
+    ai = ai + 1
 
 # Feedback label
 fblbl = lv.label(scr)
@@ -328,7 +330,8 @@ msl.align(lv.ALIGN.TOP_MID, 0, 70)
 
 # Category buttons
 mcbs = []
-for ci in range(8):
+ci = 0
+while ci < 8:
     cb = lv.btn(mnu)
     cb.set_size(130, 36)
     col = ci % 2
@@ -345,6 +348,7 @@ for ci in range(8):
     cl.set_style_text_color(COL_TX, 0)
     cl.center()
     mcbs.append(cb)
+    ci = ci + 1
 
 # Difficulty label
 dll = lv.label(mnu)
@@ -356,7 +360,8 @@ dll.align(lv.ALIGN.TOP_MID, 0, 282)
 dstrs = ["easy", "medium", "hard"]
 dnms = ["Facile", "Moyen", "Difficile"]
 dbs = []
-for di in range(3):
+di = 0
+while di < 3:
     db = lv.btn(mnu)
     db.set_size(90, 34)
     dx = 18 + di * 98
@@ -374,6 +379,7 @@ for di in range(3):
     dbl.set_style_text_color(COL_TX, 0)
     dbl.center()
     dbs.append(db)
+    di = di + 1
 
 # Play button
 pbtn = lv.btn(mnu)
@@ -390,13 +396,24 @@ plbl.center()
 def sel_cat(idx):
     global cid
     cid = cids[idx]
-    for i in range(8):
-        if i == idx:
-            mcbs[i].set_style_bg_color(COL_HL, 0)
-            mcbs[i].set_style_border_color(COL_OK, 0)
-        else:
-            mcbs[i].set_style_bg_color(COL_AC, 0)
-            mcbs[i].set_style_border_color(COL_HL, 0)
+    mcbs[0].set_style_bg_color(COL_AC, 0)
+    mcbs[0].set_style_border_color(COL_HL, 0)
+    mcbs[1].set_style_bg_color(COL_AC, 0)
+    mcbs[1].set_style_border_color(COL_HL, 0)
+    mcbs[2].set_style_bg_color(COL_AC, 0)
+    mcbs[2].set_style_border_color(COL_HL, 0)
+    mcbs[3].set_style_bg_color(COL_AC, 0)
+    mcbs[3].set_style_border_color(COL_HL, 0)
+    mcbs[4].set_style_bg_color(COL_AC, 0)
+    mcbs[4].set_style_border_color(COL_HL, 0)
+    mcbs[5].set_style_bg_color(COL_AC, 0)
+    mcbs[5].set_style_border_color(COL_HL, 0)
+    mcbs[6].set_style_bg_color(COL_AC, 0)
+    mcbs[6].set_style_border_color(COL_HL, 0)
+    mcbs[7].set_style_bg_color(COL_AC, 0)
+    mcbs[7].set_style_border_color(COL_HL, 0)
+    mcbs[idx].set_style_bg_color(COL_HL, 0)
+    mcbs[idx].set_style_border_color(COL_OK, 0)
 
 def cc0(evt):
     sel_cat(0)
@@ -435,13 +452,14 @@ mcbs[7].add_event_cb(cc7, lv.EVENT.CLICKED, 0)
 def sel_dif(idx):
     global dif
     dif = dstrs[idx]
-    for i in range(3):
-        if i == idx:
-            dbs[i].set_style_bg_color(COL_HL, 0)
-            dbs[i].set_style_border_color(COL_OK, 0)
-        else:
-            dbs[i].set_style_bg_color(COL_AC, 0)
-            dbs[i].set_style_border_color(COL_HL, 0)
+    dbs[0].set_style_bg_color(COL_AC, 0)
+    dbs[0].set_style_border_color(COL_HL, 0)
+    dbs[1].set_style_bg_color(COL_AC, 0)
+    dbs[1].set_style_border_color(COL_HL, 0)
+    dbs[2].set_style_bg_color(COL_AC, 0)
+    dbs[2].set_style_border_color(COL_HL, 0)
+    dbs[idx].set_style_bg_color(COL_HL, 0)
+    dbs[idx].set_style_border_color(COL_OK, 0)
 
 def dc0(evt):
     sel_dif(0)
@@ -459,8 +477,10 @@ dbs[2].add_event_cb(dc2, lv.EVENT.CLICKED, 0)
 # Show/hide views
 def show_menu():
     mnu.clear_flag(lv.obj.FLAG.HIDDEN)
-    for i in range(4):
-        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[0].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[1].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[2].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[3].add_flag(lv.obj.FLAG.HIDDEN)
     qbox.add_flag(lv.obj.FLAG.HIDDEN)
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
     fblbl.set_text("")
@@ -470,8 +490,10 @@ def show_menu():
 
 def show_quiz():
     mnu.add_flag(lv.obj.FLAG.HIDDEN)
-    for i in range(4):
-        abtns[i].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[0].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[1].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[2].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[3].clear_flag(lv.obj.FLAG.HIDDEN)
     qbox.clear_flag(lv.obj.FLAG.HIDDEN)
 
 # Display a question
@@ -490,11 +512,22 @@ def show_q():
     albls[1].set_text(q_a1[qi])
     albls[2].set_text(q_a2[qi])
     albls[3].set_text(q_a3[qi])
-    for i in range(4):
-        abtns[i].clear_flag(lv.obj.FLAG.HIDDEN)
-        abtns[i].set_style_bg_color(COL_AC, 0)
-        abtns[i].set_style_border_color(COL_DM, 0)
-        albls[i].set_style_text_color(COL_TX, 0)
+    abtns[0].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[0].set_style_bg_color(COL_AC, 0)
+    abtns[0].set_style_border_color(COL_DM, 0)
+    albls[0].set_style_text_color(COL_TX, 0)
+    abtns[1].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[1].set_style_bg_color(COL_AC, 0)
+    abtns[1].set_style_border_color(COL_DM, 0)
+    albls[1].set_style_text_color(COL_TX, 0)
+    abtns[2].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[2].set_style_bg_color(COL_AC, 0)
+    abtns[2].set_style_border_color(COL_DM, 0)
+    albls[2].set_style_text_color(COL_TX, 0)
+    abtns[3].clear_flag(lv.obj.FLAG.HIDDEN)
+    abtns[3].set_style_bg_color(COL_AC, 0)
+    abtns[3].set_style_border_color(COL_DM, 0)
+    albls[3].set_style_text_color(COL_TX, 0)
 
 # Check answer
 def chk_ans(idx):
@@ -510,13 +543,30 @@ def chk_ans(idx):
     else:
         fblbl.set_text("Faux !")
         fblbl.set_style_text_color(COL_NO, 0)
-    for i in range(4):
-        if i == ci:
-            abtns[i].set_style_bg_color(COL_OK, 0)
-            albls[i].set_style_text_color(COL_TX, 0)
-        elif i == idx:
-            abtns[i].set_style_bg_color(COL_NO, 0)
-            albls[i].set_style_text_color(COL_TX, 0)
+    if ci == 0:
+        abtns[0].set_style_bg_color(COL_OK, 0)
+        albls[0].set_style_text_color(COL_TX, 0)
+    elif idx == 0:
+        abtns[0].set_style_bg_color(COL_NO, 0)
+        albls[0].set_style_text_color(COL_TX, 0)
+    if ci == 1:
+        abtns[1].set_style_bg_color(COL_OK, 0)
+        albls[1].set_style_text_color(COL_TX, 0)
+    elif idx == 1:
+        abtns[1].set_style_bg_color(COL_NO, 0)
+        albls[1].set_style_text_color(COL_TX, 0)
+    if ci == 2:
+        abtns[2].set_style_bg_color(COL_OK, 0)
+        albls[2].set_style_text_color(COL_TX, 0)
+    elif idx == 2:
+        abtns[2].set_style_bg_color(COL_NO, 0)
+        albls[2].set_style_text_color(COL_TX, 0)
+    if ci == 3:
+        abtns[3].set_style_bg_color(COL_OK, 0)
+        albls[3].set_style_text_color(COL_TX, 0)
+    elif idx == 3:
+        abtns[3].set_style_bg_color(COL_NO, 0)
+        albls[3].set_style_text_color(COL_TX, 0)
     nbtn.clear_flag(lv.obj.FLAG.HIDDEN)
 
 # Answer callbacks (no closures)
@@ -547,8 +597,10 @@ nbtn.add_event_cb(on_nxt, lv.EVENT.CLICKED, 0)
 
 # End screen
 def show_end():
-    for i in range(4):
-        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[0].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[1].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[2].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[3].add_flag(lv.obj.FLAG.HIDDEN)
     qbox.add_flag(lv.obj.FLAG.HIDDEN)
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
     clbl.set_text("")
@@ -696,9 +748,14 @@ def start_game():
     clbl.set_text("")
     fblbl.set_text("")
     nbtn.add_flag(lv.obj.FLAG.HIDDEN)
-    for i in range(4):
-        abtns[i].set_style_bg_color(COL_AC, 0)
-        abtns[i].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[0].set_style_bg_color(COL_AC, 0)
+    abtns[0].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[1].set_style_bg_color(COL_AC, 0)
+    abtns[1].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[2].set_style_bg_color(COL_AC, 0)
+    abtns[2].add_flag(lv.obj.FLAG.HIDDEN)
+    abtns[3].set_style_bg_color(COL_AC, 0)
+    abtns[3].add_flag(lv.obj.FLAG.HIDDEN)
     if ft != 0:
         ft._del()
         ft = 0
