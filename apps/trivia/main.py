@@ -30,6 +30,8 @@ ft = 0
 cid = 9
 dif = "easy"
 _rs = 12345
+tap_refs = []
+end_box = 0
 
 # Category data (parallel arrays)
 cids = [9, 17, 21, 23, 11, 12, 15, 18]
@@ -209,6 +211,28 @@ def shuf(arr):
         arr[j] = tmp
         i = i - 1
 
+class Tap:
+    def __init__(self, btn, fn, arg, has_arg):
+        self.btn = btn
+        self.fn = fn
+        self.arg = arg
+        self.has_arg = has_arg
+        self.btn.clear_flag(lv.obj.FLAG.SCROLLABLE)
+        self.btn.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+
+    def oc(self, e):
+        if self.has_arg:
+            self.fn(self.arg)
+        else:
+            self.fn()
+
+def add_tap(btn, fn, arg, has_arg):
+    t = Tap(btn, fn, arg, has_arg)
+    tap_refs.append(t)
+
+def bring_home_top():
+    hb.move_foreground()
+
 # Screen
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -237,7 +261,8 @@ def oh(evt):
     qt.set_period(60)
     qt.set_cb(dq)
 
-hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
+def home_press():
+    oh(0)
 
 # Title
 tl = lv.label(scr)
@@ -317,6 +342,7 @@ mnu.align(lv.ALIGN.TOP_LEFT, 0, 0)
 mnu.set_style_bg_color(COL_BG, 0)
 mnu.set_style_border_width(0, 0)
 mnu.clear_flag(lv.obj.FLAG.SCROLLABLE)
+bring_home_top()
 
 mtl = lv.label(mnu)
 mtl.set_text("Trivia Quiz")
@@ -439,15 +465,6 @@ def cc6(evt):
 def cc7(evt):
     sel_cat(7)
 
-mcbs[0].add_event_cb(cc0, lv.EVENT.CLICKED, 0)
-mcbs[1].add_event_cb(cc1, lv.EVENT.CLICKED, 0)
-mcbs[2].add_event_cb(cc2, lv.EVENT.CLICKED, 0)
-mcbs[3].add_event_cb(cc3, lv.EVENT.CLICKED, 0)
-mcbs[4].add_event_cb(cc4, lv.EVENT.CLICKED, 0)
-mcbs[5].add_event_cb(cc5, lv.EVENT.CLICKED, 0)
-mcbs[6].add_event_cb(cc6, lv.EVENT.CLICKED, 0)
-mcbs[7].add_event_cb(cc7, lv.EVENT.CLICKED, 0)
-
 # Select difficulty
 def sel_dif(idx):
     global dif
@@ -470,13 +487,16 @@ def dc1(evt):
 def dc2(evt):
     sel_dif(2)
 
-dbs[0].add_event_cb(dc0, lv.EVENT.CLICKED, 0)
-dbs[1].add_event_cb(dc1, lv.EVENT.CLICKED, 0)
-dbs[2].add_event_cb(dc2, lv.EVENT.CLICKED, 0)
+def cat_press(idx):
+    sel_cat(idx)
+
+def dif_press(idx):
+    sel_dif(idx)
 
 # Show/hide views
 def show_menu():
     mnu.clear_flag(lv.obj.FLAG.HIDDEN)
+    bring_home_top()
     abtns[0].add_flag(lv.obj.FLAG.HIDDEN)
     abtns[1].add_flag(lv.obj.FLAG.HIDDEN)
     abtns[2].add_flag(lv.obj.FLAG.HIDDEN)
@@ -490,6 +510,7 @@ def show_menu():
 
 def show_quiz():
     mnu.add_flag(lv.obj.FLAG.HIDDEN)
+    bring_home_top()
     abtns[0].clear_flag(lv.obj.FLAG.HIDDEN)
     abtns[1].clear_flag(lv.obj.FLAG.HIDDEN)
     abtns[2].clear_flag(lv.obj.FLAG.HIDDEN)
@@ -582,10 +603,8 @@ def ac2(evt):
 def ac3(evt):
     chk_ans(3)
 
-abtns[0].add_event_cb(ac0, lv.EVENT.CLICKED, 0)
-abtns[1].add_event_cb(ac1, lv.EVENT.CLICKED, 0)
-abtns[2].add_event_cb(ac2, lv.EVENT.CLICKED, 0)
-abtns[3].add_event_cb(ac3, lv.EVENT.CLICKED, 0)
+def ans_press(idx):
+    chk_ans(idx)
 
 # Next question
 def on_nxt(evt):
@@ -593,10 +612,12 @@ def on_nxt(evt):
     qi = qi + 1
     show_q()
 
-nbtn.add_event_cb(on_nxt, lv.EVENT.CLICKED, 0)
+def next_press():
+    on_nxt(0)
 
 # End screen
 def show_end():
+    global end_box
     abtns[0].add_flag(lv.obj.FLAG.HIDDEN)
     abtns[1].add_flag(lv.obj.FLAG.HIDDEN)
     abtns[2].add_flag(lv.obj.FLAG.HIDDEN)
@@ -610,6 +631,7 @@ def show_end():
     if n > 0:
         pct = (scv * 100) // n
     eb = lv.obj(scr)
+    end_box = eb
     eb.set_size(260, 200)
     eb.center()
     eb.set_style_bg_color(COL_AC, 0)
@@ -655,14 +677,22 @@ def show_end():
     ml.set_text("Menu")
     ml.set_style_text_color(COL_TX, 0)
     ml.center()
-    def on_rep(evt):
-        eb._del()
-        start_game()
-    def on_mn(evt):
-        eb._del()
-        show_menu()
-    rb.add_event_cb(on_rep, lv.EVENT.CLICKED, 0)
-    mb2.add_event_cb(on_mn, lv.EVENT.CLICKED, 0)
+    add_tap(rb, end_replay_press, 0, 0)
+    add_tap(mb2, end_menu_press, 0, 0)
+
+def end_replay_press():
+    global end_box
+    if end_box != 0:
+        end_box._del()
+        end_box = 0
+    start_game()
+
+def end_menu_press():
+    global end_box
+    if end_box != 0:
+        end_box._del()
+        end_box = 0
+    show_menu()
 
 # Fetch questions
 def do_fetch(t):
@@ -766,7 +796,27 @@ def start_game():
 def on_play(evt):
     start_game()
 
-pbtn.add_event_cb(on_play, lv.EVENT.CLICKED, 0)
+def play_press():
+    on_play(0)
+
+add_tap(hb, home_press, 0, 0)
+add_tap(mcbs[0], cat_press, 0, 1)
+add_tap(mcbs[1], cat_press, 1, 1)
+add_tap(mcbs[2], cat_press, 2, 1)
+add_tap(mcbs[3], cat_press, 3, 1)
+add_tap(mcbs[4], cat_press, 4, 1)
+add_tap(mcbs[5], cat_press, 5, 1)
+add_tap(mcbs[6], cat_press, 6, 1)
+add_tap(mcbs[7], cat_press, 7, 1)
+add_tap(dbs[0], dif_press, 0, 1)
+add_tap(dbs[1], dif_press, 1, 1)
+add_tap(dbs[2], dif_press, 2, 1)
+add_tap(abtns[0], ans_press, 0, 1)
+add_tap(abtns[1], ans_press, 1, 1)
+add_tap(abtns[2], ans_press, 2, 1)
+add_tap(abtns[3], ans_press, 3, 1)
+add_tap(nbtn, next_press, 0, 0)
+add_tap(pbtn, play_press, 0, 0)
 
 # Start with menu
 show_menu()
