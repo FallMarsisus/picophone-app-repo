@@ -6,11 +6,11 @@ MAX_ROWS = 6
 WORD_LEN = 5
 TILE_SIZE = 40
 TILE_GAP = 4
-GRID_X = 6
+GRID_X = (320 - (TILE_SIZE * WORD_LEN + TILE_GAP * (WORD_LEN - 1))) // 2
 GRID_Y = 44
-KEY_W = 28
+KEY_W = 26
 KEY_H = 36
-KEY_GAP = 4
+KEY_GAP = 3
 KBD_Y = 480 - 3 * (KEY_H + KEY_GAP) - 4
 
 # Colors
@@ -18,7 +18,6 @@ COL_GREEN = lv.palette_main(lv.PALETTE.GREEN)
 COL_YELLOW = lv.palette_main(lv.PALETTE.YELLOW)
 COL_GRAY = lv.palette_main(lv.PALETTE.GREY)
 COL_WHITE = lv.color_white()
-COL_BLACK = lv.color_black()
 
 # --------------- Game state ---------------
 target = ["C", "R", "A", "N", "E"]
@@ -287,7 +286,6 @@ class KeyBtn:
         btn = lv.btn(parent)
         btn.set_size(w, h)
         btn.align(lv.ALIGN.TOP_LEFT, x, y)
-        btn.set_style_text_color(COL_BLACK, 0)
         lbl = lv.label(btn)
         lbl.set_text(text)
         lbl.center()
@@ -336,9 +334,6 @@ for row in range(MAX_ROWS):
     for col in range(WORD_LEN):
         tile = lv.btn(scr)
         tile.set_size(TILE_SIZE, TILE_SIZE)
-        tile.set_style_bg_color(COL_WHITE, 0)
-        tile.set_style_bg_opa(lv.OPA.COVER, 0)
-        tile.set_style_text_color(COL_BLACK, 0)
         tx = GRID_X + col * (TILE_SIZE + TILE_GAP)
         ty = GRID_Y + row * (TILE_SIZE + TILE_GAP)
         tile.align(lv.ALIGN.TOP_LEFT, tx, ty)
@@ -356,7 +351,7 @@ row2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"]
 row3 = ["Z", "X", "C", "V", "B", "N", "M"]
 
 # Row 1: QWERTYUIOP (10 keys)
-x0 = (320 - (10 * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
+x0 = 4
 for i in range(10):
     kb = KeyBtn(scr, row1[i], x0, KBD_Y, KEY_W, KEY_H)
     key_btns.append(kb)
@@ -364,7 +359,7 @@ for i in range(10):
 
 # Row 2: ASDFGHJKL (9 keys)
 ky2 = KBD_Y + KEY_H + KEY_GAP
-x0 = (320 - (9 * (KEY_W + KEY_GAP) - KEY_GAP)) // 2
+x0 = 22
 for i in range(9):
     kb = KeyBtn(scr, row2[i], x0, ky2, KEY_W, KEY_H)
     key_btns.append(kb)
@@ -372,8 +367,8 @@ for i in range(9):
 
 # Row 3: < Z X C V B N M OK
 ky3 = KBD_Y + 2 * (KEY_H + KEY_GAP)
-wdel = KEY_W + 4
-wok = KEY_W + 4
+wdel = KEY_W + 6
+wok = KEY_W + 6
 x0 = 4
 kb = KeyBtn(scr, "<", x0, ky3, wdel, KEY_H)
 key_btns.append(kb)
