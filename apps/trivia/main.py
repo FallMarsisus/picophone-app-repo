@@ -1,6 +1,6 @@
 import pika_lvgl as lv
 
-# ─── Configuration ──────────────────────────────────────────
+# --- Configuration ---
 SCR_W = 320
 SCR_H = 480
 BTN_RADIUS = 10
@@ -8,7 +8,7 @@ Q_PER_ROUND = 5
 
 API_BASE = "http://opentdb.com/api.php"
 
-# ─── Colors (palette only, no color_hex) ────────────────────
+# --- Colors ---
 COL_BG = lv.color_black()
 COL_ACCENT = lv.palette_main(lv.PALETTE.BLUE_GREY)
 COL_CORRECT = lv.palette_main(lv.PALETTE.GREEN)
@@ -18,7 +18,7 @@ COL_TEXT = lv.color_white()
 COL_DIM = lv.palette_main(lv.PALETTE.GREY)
 COL_BTN = lv.palette_main(lv.PALETTE.BLUE_GREY)
 
-# ─── State ──────────────────────────────────────────────────
+# --- State ---
 questions = []
 qidx = 0
 score = 0
@@ -27,7 +27,7 @@ answered = False
 qt = 0
 fetch_timer = 0
 
-# ─── HTML entity decoder (minimal) ─────────────────────────
+# --- HTML entity decoder ---
 def decode_html(s):
     out = ""
     i = 0
@@ -79,7 +79,7 @@ def decode_html(s):
             i = i + 1
     return out
 
-# ─── Minimal JSON parser for OpenTDB response ──────────────
+# --- JSON parser ---
 def skip_ws(s, i):
     while i < len(s) and (s[i] == ' ' or s[i] == '\n' or s[i] == '\r' or s[i] == '\t'):
         i = i + 1
@@ -175,7 +175,7 @@ def parse_json(s):
     val, _ = parse_value(s, 0)
     return val
 
-# ─── Simple shuffle (Fisher-Yates with basic seed) ─────────
+# --- Shuffle ---
 _rseed = 12345
 def _rand():
     global _rseed
@@ -192,7 +192,7 @@ def shuffle(arr):
         arr[j] = tmp
         i = i - 1
 
-# ─── Parse questions from API response ─────────────────────
+# --- Parse questions ---
 def parse_questions(raw):
     global _rseed
     parsed = parse_json(raw)
@@ -228,13 +228,13 @@ def parse_questions(raw):
         })
     return qs
 
-# ─── Screen setup ──────────────────────────────────────────
+# --- Screen setup ---
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(COL_BG, 0)
 sc = scr
 
-# ─── Home button ───────────────────────────────────────────
+# --- Home button ---
 hb = lv.btn(sc)
 hb.set_size(60, 26)
 hb.align(lv.ALIGN.TOP_LEFT, 4, 4)
@@ -259,25 +259,25 @@ def oh(evt):
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
-# ─── Title ─────────────────────────────────────────────────
+# --- Title ---
 title_lbl = lv.label(scr)
 title_lbl.set_text("Trivia Quiz")
 title_lbl.set_style_text_color(COL_TEXT, 0)
 title_lbl.align(lv.ALIGN.TOP_MID, 0, 6)
 
-# ─── Score / Progress label ───────────────────────────────
+# --- Score ---
 score_lbl = lv.label(scr)
 score_lbl.set_text("")
 score_lbl.set_style_text_color(COL_DIM, 0)
 score_lbl.align(lv.ALIGN.TOP_RIGHT, -8, 8)
 
-# ─── Category label ───────────────────────────────────────
+# --- Category label ---
 cat_lbl = lv.label(scr)
 cat_lbl.set_text("")
 cat_lbl.set_style_text_color(COL_DIM, 0)
 cat_lbl.align(lv.ALIGN.TOP_MID, 0, 28)
 
-# ─── Question area ────────────────────────────────────────
+# --- Question area ---
 q_box = lv.obj(scr)
 q_box.set_size(300, 100)
 q_box.align(lv.ALIGN.TOP_MID, 0, 46)
@@ -287,13 +287,11 @@ q_box.set_style_radius(BTN_RADIUS, 0)
 q_box.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
 q_lbl = lv.label(q_box)
-q_lbl.set_long_mode(1)
-q_lbl.set_width(280)
 q_lbl.set_text("Chargement...")
 q_lbl.set_style_text_color(COL_TEXT, 0)
 q_lbl.align(lv.ALIGN.TOP_LEFT, 10, 8)
 
-# ─── Answer buttons ───────────────────────────────────────
+# --- Answer buttons ---
 ans_btns = []
 ans_lbls = []
 for i in range(4):
@@ -306,21 +304,19 @@ for i in range(4):
     b.set_style_border_color(COL_DIM, 0)
     b.set_style_border_width(1, 0)
     l = lv.label(b)
-    l.set_long_mode(1)
-    l.set_width(270)
     l.set_text("")
     l.set_style_text_color(COL_TEXT, 0)
     l.center()
     ans_btns.append(b)
     ans_lbls.append(l)
 
-# ─── Feedback label ───────────────────────────────────────
+# --- Feedback label ---
 fb_lbl = lv.label(scr)
 fb_lbl.set_text("")
 fb_lbl.set_style_text_color(COL_TEXT, 0)
 fb_lbl.align(lv.ALIGN.TOP_MID, 0, 382)
 
-# ─── Next button ──────────────────────────────────────────
+# --- Next button ---
 next_btn = lv.btn(scr)
 next_btn.set_size(140, 40)
 next_btn.align(lv.ALIGN.TOP_MID, 0, 406)
@@ -333,7 +329,7 @@ next_lbl.set_text("Suivant >")
 next_lbl.set_style_text_color(COL_TEXT, 0)
 next_lbl.center()
 
-# ─── Menu container (hidden initially) ────────────────────
+# --- Menu container ---
 menu_box = lv.obj(scr)
 menu_box.set_size(SCR_W, SCR_H)
 menu_box.align(lv.ALIGN.TOP_LEFT, 0, 0)
@@ -427,7 +423,7 @@ play_lbl.set_text("Jouer !")
 play_lbl.set_style_text_color(lv.color_white(), 0)
 play_lbl.center()
 
-# ─── Category selection logic ─────────────────────────────
+# --- Category selection ---
 def make_cat_cb(idx):
     def cb(evt, idx=idx):
         global cat_id
@@ -449,7 +445,7 @@ for ci in range(len(cats)):
     menu_cat_btns[ci].add_event_cb(
         make_cat_cb(ci), lv.EVENT.CLICKED, None)
 
-# ─── Difficulty selection logic ───────────────────────────
+# --- Difficulty selection ---
 def make_diff_cb(idx):
     def cb(evt, idx=idx):
         global diff_str
@@ -471,7 +467,7 @@ for di in range(3):
     diff_btns[di].add_event_cb(
         make_diff_cb(di), lv.EVENT.CLICKED, None)
 
-# ─── Show / hide views ────────────────────────────────────
+# --- Show / hide views ---
 def show_menu():
     menu_box.clear_flag(lv.obj.FLAG.HIDDEN)
     for b in ans_btns:
@@ -489,7 +485,7 @@ def show_quiz():
         b.clear_flag(lv.obj.FLAG.HIDDEN)
     q_box.clear_flag(lv.obj.FLAG.HIDDEN)
 
-# ─── Display a question ──────────────────────────────────
+# --- Display a question ---
 def show_question():
     global answered
     answered = False
@@ -513,7 +509,7 @@ def show_question():
         else:
             ans_btns[i].add_flag(lv.obj.FLAG.HIDDEN)
 
-# ─── Handle answer click ─────────────────────────────────
+# --- Handle answer click ---
 def make_ans_cb(idx):
     def cb(evt, idx=idx):
         global answered, score
@@ -547,7 +543,7 @@ for i in range(4):
     ans_btns[i].add_event_cb(
         make_ans_cb(i), lv.EVENT.CLICKED, None)
 
-# ─── Next question ────────────────────────────────────────
+# --- Next question ---
 def on_next(evt):
     global qidx
     qidx = qidx + 1
@@ -555,7 +551,7 @@ def on_next(evt):
 
 next_btn.add_event_cb(on_next, lv.EVENT.CLICKED, None)
 
-# ─── End screen (dialog) ─────────────────────────────────
+# --- End screen ---
 def show_end():
     for b in ans_btns:
         b.add_flag(lv.obj.FLAG.HIDDEN)
@@ -632,7 +628,7 @@ def show_end():
     rb.add_event_cb(on_replay, lv.EVENT.CLICKED, None)
     mb.add_event_cb(on_menu, lv.EVENT.CLICKED, None)
 
-# ─── Fetch & start game ──────────────────────────────────
+# --- Fetch & start game ---
 def fetch_questions(t):
     global questions, qidx, score, total, fetch_timer, _rseed
     t._del()
@@ -758,5 +754,5 @@ def on_play(evt):
 
 play_btn.add_event_cb(on_play, lv.EVENT.CLICKED, None)
 
-# ─── Initial state: show menu ────────────────────────────
+# --- Initial state ---
 show_menu()
