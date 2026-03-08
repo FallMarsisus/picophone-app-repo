@@ -31,7 +31,7 @@ status_lbl.align(lv.ALIGN.TOP_MID, 0, 50)
 time_lbl = lv.label(scr)
 time_lbl.set_text("25:00")
 time_lbl.set_style_text_color(lv.color_white(), 0)
-time_lbl.set_style_text_font(lv.FONT.MONTSERRAT_28, 0)
+# time_lbl.set_style_text_font(lv.FONT.MONTSERRAT_28, 0)
 time_lbl.align(lv.ALIGN.CENTER, 0, -50)
 
 # Fonction pour formater les secondes en MM:SS

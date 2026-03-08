@@ -20,16 +20,8 @@ gover = False
 tlbl = []
 tbtn = []
 kbtns = []
-kq0 = ""
-kq1 = ""
-kq2 = ""
-kq3 = ""
-kq4 = ""
-ks0 = 0
-ks1 = 0
-ks2 = 0
-ks3 = 0
-ks4 = 0
+kq = ["", "", "", "", ""]
+ks = [0, 0, 0, 0, 0]
 kph = 0
 ktmr = 0
 
@@ -75,41 +67,23 @@ def dl():
 def ct(b, l, le, c):
     l.set_text(le)
     if c == 2:
-        b.set_style_bg_color(
-            lv.palette_main(lv.PALETTE.GREEN), 0)
+        b.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
         l.set_style_text_color(lv.color_white(), 0)
     elif c == 1:
-        b.set_style_bg_color(
-            lv.palette_main(lv.PALETTE.YELLOW), 0)
+        b.set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
         l.set_style_text_color(lv.color_black(), 0)
     else:
-        b.set_style_bg_color(
-            lv.palette_main(lv.PALETTE.GREY), 0)
+        b.set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
         l.set_style_text_color(lv.color_white(), 0)
 
 def kcs(t):
     global ktmr, kph
-    le = ""
-    ns = 0
-    if kph == 0:
-        le = kq0
-        ns = ks0
-    elif kph == 1:
-        le = kq1
-        ns = ks1
-    elif kph == 2:
-        le = kq2
-        ns = ks2
-    elif kph == 3:
-        le = kq3
-        ns = ks3
-    elif kph == 4:
-        le = kq4
-        ns = ks4
-    else:
+    if kph >= 5:
         t._del()
         ktmr = 0
         return
+    le = kq[kph]
+    ns = ks[kph]
     kph = kph + 1
     for i in range(NK):
         kb = kbtns[i]
@@ -120,27 +94,19 @@ def kcs(t):
             break
 
 def sg():
-    global crow, ccol, gover
-    global kq0, kq1, kq2, kq3, kq4
-    global ks0, ks1, ks2, ks3, ks4
-    global kph, ktmr
+    global crow, ccol, gover, kph, ktmr
     if ccol < WORD_LEN:
         sl.set_text("5 lettres!")
         return
     if ktmr != 0:
         ktmr._del()
         ktmr = 0
-    # Au lieu des 120 lignes de if/elif pour c0, c1, c2...
     c = [0, 0, 0, 0, 0]
     r = [target[0], target[1], target[2], target[3], target[4]]
-
-    # 1. Vérifier les lettres bien placées (Vert)
     for i in range(5):
         if guess[i] == target[i]:
             c[i] = 2
             r[i] = ""
-
-    # 2. Vérifier les lettres mal placées (Jaune)
     for i in range(5):
         if c[i] == 0:
             for j in range(5):
@@ -148,23 +114,12 @@ def sg():
                     c[i] = 1
                     r[j] = ""
                     break
-
-    # Mise à jour de l'UI dans une boucle
     rl = tlbl[crow]
     rb = tbtn[crow]
     for i in range(5):
         ct(rb[i], rl[i], guess[i], c[i])
-
-    kq0 = guess[0]
-    kq1 = guess[1]
-    kq2 = guess[2]
-    kq3 = guess[3]
-    kq4 = guess[4]
-    ks0 = c[0] + 1
-    ks1 = c[1] + 1
-    ks2 = c[2] + 1
-    ks3 = c[3] + 1
-    ks4 = c[4] + 1
+        kq[i] = guess[i]
+        ks[i] = c[i] + 1
     kph = 0
     ktmr = lv.timer_create_basic()
     ktmr.set_period(80)
@@ -178,11 +133,8 @@ def sg():
         return
     crow = crow + 1
     ccol = 0
-    guess[0] = ""
-    guess[1] = ""
-    guess[2] = ""
-    guess[3] = ""
-    guess[4] = ""
+    for i in range(5):
+        guess[i] = ""
     if crow >= MAX_ROWS:
         ans = target[0]+target[1]+target[2]+target[3]+target[4]
         sl.set_text(ans)
@@ -219,41 +171,25 @@ def show_replay(msg):
     rb.add_event_cb(on_replay, lv.EVENT.CLICKED, None)
 
 def new_game():
-    global crow, ccol, gover, target
-    global kq0, kq1, kq2, kq3, kq4
-    global ks0, ks1, ks2, ks3, ks4
-    global kph, ktmr
+    global crow, ccol, gover, kph, ktmr
     crow = 0
     ccol = 0
     gover = False
     for i in range(5):
         guess[i] = ""
+        kq[i] = ""
+        ks[i] = 0
     for row in range(MAX_ROWS):
         for col in range(WORD_LEN):
-            tbtn[row][col].set_style_bg_color(
-                lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
-            tbtn[row][col].set_style_border_color(
-                lv.palette_main(lv.PALETTE.GREY), 0)
+            tbtn[row][col].set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+            tbtn[row][col].set_style_border_color(lv.palette_main(lv.PALETTE.GREY), 0)
             tlbl[row][col].set_text(" ")
-            tlbl[row][col].set_style_text_color(
-                lv.color_white(), 0)
+            tlbl[row][col].set_style_text_color(lv.color_white(), 0)
     for i in range(NK):
         kb = kbtns[i]
         kb.state = 0
-        kb.btn.set_style_bg_color(
-            lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
-        kb.btn.set_style_text_color(lv.color_white(), 0)
+        kb.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
         kb.lbl.set_style_text_color(lv.color_white(), 0)
-    kq0 = ""
-    kq1 = ""
-    kq2 = ""
-    kq3 = ""
-    kq4 = ""
-    ks0 = 0
-    ks1 = 0
-    ks2 = 0
-    ks3 = 0
-    ks4 = 0
     kph = 0
     if ktmr != 0:
         ktmr._del()
@@ -268,8 +204,7 @@ class K:
         b = lv.btn(p)
         b.set_size(w, h)
         b.align(lv.ALIGN.TOP_LEFT, x, y)
-        b.set_style_bg_color(
-            lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+        b.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
         b.set_style_radius(4, 0)
         l = lv.label(b)
         l.set_text(t)
@@ -373,22 +308,15 @@ def lw(t):
         ch = []
         iw = False
         for c in raw:
-            if c == '"' and not iw:
-                iw = True
-                continue
-            if c == '"' and iw:
-                break
             if iw:
+                if c == '"':
+                    break
                 ch.append(upc(c))
-        n = 0
-        for c in ch:
-            n = n + 1
-        if n == WORD_LEN:
-            target[0] = ch[0]
-            target[1] = ch[1]
-            target[2] = ch[2]
-            target[3] = ch[3]
-            target[4] = ch[4]
+            elif c == '"':
+                iw = True
+        if len(ch) == WORD_LEN:
+            for i in range(5):
+                target[i] = ch[i]
     sl.set_text("1/" + str(MAX_ROWS))
 
 wt = lv.timer_create_basic()
