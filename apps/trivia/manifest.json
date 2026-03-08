@@ -1,9 +1,0 @@
-{
-    "id": "trivia",
-    "name": "Trivia Quiz",
-    "description": "Answer trivia questions from the Open Trivia Database. Multiple choice questions with score tracking, difficulty selection, and category support.",
-    "author": "FallMarsisus",
-    "version": "1.4.1",
-    "entry": "main.py",
-    "category": "game"
-}

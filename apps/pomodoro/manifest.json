@@ -1,0 +1,9 @@
+{
+    "id": "pomodoro",
+    "name": "Pomodoro Timer",
+    "description": "A simple Pomodoro timer to help with time management and focus.",
+    "author": "FallMarsisus",
+    "version": "1.0.0",
+    "entry": "main.py",
+    "category": "utility"
+}
