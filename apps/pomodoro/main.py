@@ -47,7 +47,7 @@ time_lbl.set_text("25:00")
 time_lbl.set_style_text_color(lv.color_white(), 0)
 time_style = lv.style_t()
 time_style.init()
-time_style.set_text_font(lv.font_montserrat_18)
+# time_style.set_text_font(lv.font_montserrat_18)
 time_lbl.add_style(time_style, 0)
 time_lbl.align(lv.ALIGN.CENTER, 0, -20)
 
