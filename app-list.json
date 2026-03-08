@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-08T00:03:51.320359+00:00",
+  "generated_at": "2026-03-08T09:18:41.672798+00:00",
   "app_count": 3,
   "apps": [
     {
@@ -16,16 +16,16 @@
       "last_commit_sha": "6a56c8bf96a256512577c4ade790a60b538a6901"
     },
     {
-      "id": "trivia",
-      "name": "Trivia Quiz",
-      "description": "Answer trivia questions from the Open Trivia Database. Multiple choice questions with score tracking, difficulty selection, and category support.",
+      "id": "pomodoro",
+      "name": "Pomodoro Timer",
+      "description": "A simple Pomodoro timer to help with time management and focus.",
       "author": "FallMarsisus",
-      "version": "1.4.1",
+      "version": "1.0.0",
       "entry": "main.py",
-      "category": "game",
-      "last_updated": "2026-03-08T01:03:40+01:00",
+      "category": "utility",
+      "last_updated": "2026-03-08T10:18:31+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "a3850abe0b402e379c8bc0ca2194d17d45cf54c6"
+      "last_commit_sha": "cc7bcb34eda510972dcaa3e09c3cdede1766f836"
     },
     {
       "id": "wordle",
