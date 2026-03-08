@@ -31,6 +31,7 @@ status_lbl.align(lv.ALIGN.TOP_MID, 0, 50)
 time_lbl = lv.label(scr)
 time_lbl.set_text("25:00")
 time_lbl.set_style_text_color(lv.color_white(), 0)
+time_lbl.set_style_text_font(lv.FONT.MONTSERRAT_28, 0)
 time_lbl.align(lv.ALIGN.CENTER, 0, -50)
 
 # Fonction pour formater les secondes en MM:SS
@@ -95,7 +96,7 @@ def on_start(evt):
     is_running = not is_running
     if is_running:
         start_lbl.set_text("Pause")
-        start_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.YELLOW), 0)
+        start_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.RED), 0)
     else:
         start_lbl.set_text("Start")
         start_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE), 0)
@@ -128,10 +129,10 @@ reset_btn.add_event_cb(on_reset, lv.EVENT.CLICKED, 0)
 # 3. Bouton "Passer la phase" (pour forcer le passage en pause/travail)
 skip_btn = lv.btn(scr)
 skip_btn.set_size(260, 40)
-skip_btn.align(lv.ALIGN.BOTTOM_MID, 0, -80)
+skip_btn.align(lv.ALIGN.BOTTOM_MID, 0, -10)
 skip_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.DEEP_PURPLE), 0)
 skip_lbl = lv.label(skip_btn)
-skip_lbl.set_text("Forcer l'autre phase >>")
+skip_lbl.set_text("Phase suivante >>")
 skip_lbl.center()
 
 def on_skip(evt):
@@ -150,13 +151,14 @@ def on_skip(evt):
 skip_btn.add_event_cb(on_skip, lv.EVENT.CLICKED, 0)
 
 # 4. Bouton Quitter
-quit_btn = lv.btn(scr)
-quit_btn.set_size(260, 45)
-quit_btn.align(lv.ALIGN.BOTTOM_MID, 0, -15)
-quit_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.RED), 0)
-quit_lbl = lv.label(quit_btn)
-quit_lbl.set_text("Quitter vers Home")
-quit_lbl.center()
+
+hb = lv.btn(scr)
+hb.set_size(60, 28)
+hb.align(lv.ALIGN.TOP_LEFT, 4, 6)
+hl = lv.label(hb)
+hl.set_text("< Home")
+hl.center()
+
 
 # On passe par un mini-timer pour quitter proprement afin que LVGL 
 # ait le temps de jouer l'animation du bouton pressé.
@@ -172,7 +174,7 @@ def on_quit(evt):
     qt.set_period(50)
     qt.set_cb(do_quit)
 
-quit_btn.add_event_cb(on_quit, lv.EVENT.CLICKED, 0)
+hb.add_event_cb(on_quit, lv.EVENT.CLICKED, 0)
 
 # Initialisation de l'affichage
 update_ui()
