@@ -9,6 +9,7 @@ time_left = WORK_TIME
 is_running = False
 is_work = True
 main_timer = 0
+prog_arc = 0
 
 # --- INTERFACE GRAPHIQUE ---
 scr = lv.scr_act()
@@ -27,12 +28,28 @@ status_lbl.set_text("TRAVAIL")
 status_lbl.set_style_text_color(lv.palette_main(lv.PALETTE.RED), 0)
 status_lbl.align(lv.ALIGN.TOP_MID, 0, 50)
 
+# Arc de progression
+prog_arc = lv.arc(scr)
+prog_arc.set_size(160, 160)
+prog_arc.align(lv.ALIGN.CENTER, 0, -20)
+prog_arc.set_range(0, WORK_TIME)
+prog_arc.set_value(WORK_TIME)
+prog_arc.set_bg_angles(135, 45)
+prog_arc.clear_flag(lv.obj.FLAG.CLICKABLE)
+prog_arc.set_style_arc_color(lv.palette_main(lv.PALETTE.RED), lv.PART.INDICATOR)
+prog_arc.set_style_arc_width(10, lv.PART.INDICATOR)
+prog_arc.set_style_arc_width(10, 0)
+prog_arc.set_style_opa(lv.OPA.TRANSP, lv.PART.KNOB)
+
 # Affichage du temps restant
 time_lbl = lv.label(scr)
 time_lbl.set_text("25:00")
 time_lbl.set_style_text_color(lv.color_white(), 0)
-# time_lbl.set_style_text_font(lv.FONT.MONTSERRAT_28, 0)
-time_lbl.align(lv.ALIGN.CENTER, 0, -50)
+time_style = lv.style_t()
+time_style.init()
+time_style.set_text_font(lv.font_montserrat_18)
+time_lbl.add_style(time_style, 0)
+time_lbl.align(lv.ALIGN.CENTER, 0, -20)
 
 # Fonction pour formater les secondes en MM:SS
 def format_time(seconds):
@@ -51,9 +68,14 @@ def update_ui():
     if is_work:
         status_lbl.set_text("TRAVAIL")
         status_lbl.set_style_text_color(lv.palette_main(lv.PALETTE.RED), 0)
+        prog_arc.set_range(0, WORK_TIME)
+        prog_arc.set_style_arc_color(lv.palette_main(lv.PALETTE.RED), lv.PART.INDICATOR)
     else:
         status_lbl.set_text("PAUSE")
         status_lbl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+        prog_arc.set_range(0, BREAK_TIME)
+        prog_arc.set_style_arc_color(lv.palette_main(lv.PALETTE.GREEN), lv.PART.INDICATOR)
+    prog_arc.set_value(time_left)
 
 # --- LE CHRONOMÈTRE (Tick chaque seconde) ---
 def on_tick(t):
@@ -64,6 +86,7 @@ def on_tick(t):
     if time_left > 0:
         time_left -= 1
         time_lbl.set_text(format_time(time_left))
+        prog_arc.set_value(time_left)
     else:
         # Le temps est écoulé, on change de phase
         is_running = False
@@ -86,7 +109,7 @@ main_timer.set_cb(on_tick)
 # 1. Bouton Start / Pause
 start_btn = lv.btn(scr)
 start_btn.set_size(120, 50)
-start_btn.align(lv.ALIGN.CENTER, -70, 30)
+start_btn.align(lv.ALIGN.CENTER, -70, 90)
 start_lbl = lv.label(start_btn)
 start_lbl.set_text("Start")
 start_lbl.center()
@@ -106,7 +129,7 @@ start_btn.add_event_cb(on_start, lv.EVENT.CLICKED, 0)
 # 2. Bouton Reset
 reset_btn = lv.btn(scr)
 reset_btn.set_size(120, 50)
-reset_btn.align(lv.ALIGN.CENTER, 70, 30)
+reset_btn.align(lv.ALIGN.CENTER, 70, 90)
 reset_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREY), 0)
 reset_lbl = lv.label(reset_btn)
 reset_lbl.set_text("Reset")
