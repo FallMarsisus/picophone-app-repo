@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-08T09:43:22.868006+00:00",
+  "generated_at": "2026-03-08T09:45:24.706904+00:00",
   "app_count": 3,
   "apps": [
     {
@@ -20,24 +20,24 @@
       "name": "Pomodoro Timer",
       "description": "A simple Pomodoro timer to help with time management and focus.",
       "author": "FallMarsisus",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "entry": "main.py",
       "category": "utility",
-      "last_updated": "2026-03-08T10:43:13+01:00",
+      "last_updated": "2026-03-08T10:45:14+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "eb2d5ad6f6baf03db5293c74e5ecbc0325aa7abb"
+      "last_commit_sha": "f70a78fd4f89660c9c0f7a1e15c748215c07cf65"
     },
     {
       "id": "wordle",
       "name": "Wordle",
       "description": "The classic Wordle word-guessing game. Guess the 5-letter word in 6 tries. Colors indicate correct letters (green), misplaced letters (yellow) or absent letters (gray).",
       "author": "FallMarsisus",
-      "version": "1.6.5",
+      "version": "1.6.6",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-07T21:42:09+01:00",
+      "last_updated": "2026-03-08T10:45:14+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "3bd841b13c489a8ac43be0843572e0084dc20059"
+      "last_commit_sha": "f70a78fd4f89660c9c0f7a1e15c748215c07cf65"
     }
   ]
 }
