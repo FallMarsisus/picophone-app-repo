@@ -3,7 +3,7 @@
     "name": "Wordle",
     "description": "The classic Wordle word-guessing game. Guess the 5-letter word in 6 tries. Colors indicate correct letters (green), misplaced letters (yellow) or absent letters (gray).",
     "author": "FallMarsisus",
-    "version": "1.6.6",
+    "version": "1.6.7",
     "entry": "main.py",
     "category": "game"
 }

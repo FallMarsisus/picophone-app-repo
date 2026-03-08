@@ -35,7 +35,7 @@ tl.set_style_text_color(lv.color_white(), 0)
 tl.align(lv.ALIGN.TOP_MID, 0, 8)
 
 sl = lv.label(scr)
-sl.set_text("")
+sl.set_text("Chargement...")
 sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
 sl.align(lv.ALIGN.TOP_MID, 0, 28)
 
@@ -143,7 +143,23 @@ def sg():
     else:
         sl.set_text(str(crow + 1) + "/" + str(MAX_ROWS))
 
+rbox = 0
+
+def do_rp(t):
+    global rbox
+    t._del()
+    if rbox != 0:
+        rbox._del()
+        rbox = 0
+    new_game()
+
+def on_rp(evt):
+    rt = lv.timer_create_basic()
+    rt.set_period(50)
+    rt.set_cb(do_rp)
+
 def show_replay(msg):
+    global rbox
     mbox = lv.obj(scr)
     mbox.set_size(240, 140)
     mbox.center()
@@ -165,10 +181,8 @@ def show_replay(msg):
     rl.set_text("Rejouer")
     rl.set_style_text_color(lv.color_white(), 0)
     rl.center()
-    def on_replay(evt):
-        mbox._del()
-        new_game()
-    rb.add_event_cb(on_replay, lv.EVENT.CLICKED, None)
+    rbox = mbox
+    rb.add_event_cb(on_rp, lv.EVENT.CLICKED, None)
 
 def new_game():
     global crow, ccol, gover, kph, ktmr
@@ -194,7 +208,7 @@ def new_game():
     if ktmr != 0:
         ktmr._del()
         ktmr = 0
-    sl.set_text("")
+    sl.set_text("Chargement...")
     wt2 = lv.timer_create_basic()
     wt2.set_period(100)
     wt2.set_cb(lw)
