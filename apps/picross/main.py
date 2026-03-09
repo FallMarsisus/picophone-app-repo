@@ -15,13 +15,7 @@ LEVEL = [
     [1, 0, 1, 0, 1]
 ]
 
-pgrid = [
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
-]
+pgrid = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 cbtn = []
 gover = False
@@ -52,8 +46,7 @@ def do_rp(t):
     gover = False
     for r in range(GRID_SIZE):
         for c in range(GRID_SIZE):
-            pr = pgrid[r]
-            pr[c] = 0
+            pgrid[r * GRID_SIZE + c] = 0
             cr = cbtn[r]
             cr[c].btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
     sl.set_text("Joue !")
@@ -94,10 +87,9 @@ def show_win():
 def check_win():
     global gover
     for r in range(GRID_SIZE):
-        pr = pgrid[r]
         lr = LEVEL[r]
         for c in range(GRID_SIZE):
-            if pr[c] != lr[c]:
+            if pgrid[r * GRID_SIZE + c] != lr[c]:
                 return
     gover = True
     sl.set_text("GAGNE !")
@@ -120,13 +112,13 @@ class Cell:
     def oc(self, e):
         if gover:
             return
-        pr = pgrid[self.r]
-        cur = pr[self.c]
+        idx = self.r * GRID_SIZE + self.c
+        cur = pgrid[idx]
         if cur == 0:
-            pr[self.c] = 1
+            pgrid[idx] = 1
             self.btn.set_style_bg_color(lv.color_black(), 0)
         else:
-            pr[self.c] = 0
+            pgrid[idx] = 0
             self.btn.set_style_bg_color(lv.color_white(), 0)
         check_win()
 
