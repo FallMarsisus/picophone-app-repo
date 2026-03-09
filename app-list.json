@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-03-09T16:18:18.878087+00:00",
+  "generated_at": "2026-03-09T16:26:40.981919+00:00",
   "app_count": 4,
   "apps": [
     {
@@ -20,12 +20,12 @@
       "name": "Picross",
       "description": "A puzzle game where you fill in a grid based on numerical clues",
       "author": "FallMarsisus",
-      "version": "1.0.10",
+      "version": "1.0.11",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-09T17:18:07+01:00",
+      "last_updated": "2026-03-09T17:26:30+01:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "70954973dc7ab17a50d3a09ae0bc5a33d0ff0370"
+      "last_commit_sha": "34b22331ee0b5eb4f0e7e8527d36ae683c6f7a97"
     },
     {
       "id": "pomodoro",
