@@ -27,7 +27,7 @@ cbtn = []
 gover = False
 rbox = 0
 
-# --- UI INIT ---
+# --- UI INIT ---w
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(lv.color_black(), 0)
@@ -229,4 +229,4 @@ def oh(evt):
     qt.set_cb(dq)
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
-# --- FIN ---
+# ---- FIN ----
