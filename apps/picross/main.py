@@ -12,7 +12,7 @@ LEVEL = [
     [0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0]
+    [1, 0, 1, 0, 1]
 ]
 
 pgrid = [
@@ -106,15 +106,15 @@ class Cell:
         b = lv.btn(p)
         b.set_size(w, h)
         b.align(lv.ALIGN.TOP_LEFT, x, y)
-        b.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+        b.set_style_bg_color(lv.color_white(), 0)
         b.set_style_radius(4, 0)
         self.btn = b
         self.r = r
         self.c = c
 
         # feedback events: pressed/released for visual press state
-        # b.add_event_cb(self.on_press, lv.EVENT.PRESSED, None)
-        # b.add_event_cb(self.on_release, lv.EVENT.RELEASED, None)
+        b.add_event_cb(self.on_press, lv.EVENT.PRESSED, None)
+        b.add_event_cb(self.on_release, lv.EVENT.RELEASED, None)
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
 
     def on_press(self, e):
@@ -125,9 +125,9 @@ class Cell:
         # restore color according to current value
         cur = pgrid[self.r][self.c]
         if cur == 1:
-            self.btn.set_style_bg_color(lv.color_black(), 0)
+            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLACK), 0)
         else:
-            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.WHITE), 0)
 
     def oc(self, e):
         if gover:
@@ -138,7 +138,7 @@ class Cell:
             self.btn.set_style_bg_color(lv.color_black(), 0)
         else:
             pgrid[self.r][self.c] = 0
-            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+            self.btn.set_style_bg_color(lv.color_white(), 0)
         check_win()
 
 # --- HINTS ---
