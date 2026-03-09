@@ -111,7 +111,23 @@ class Cell:
         self.btn = b
         self.r = r
         self.c = c
+
+        # feedback events: pressed/released for visual press state
+        b.add_event_cb(self.on_press, lv.EVENT.PRESSED, None)
+        b.add_event_cb(self.on_release, lv.EVENT.RELEASED, None)
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+
+    def on_press(self, e):
+        # darken the cell temporarily
+        self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.DEEP_PURPLE), 0)
+
+    def on_release(self, e):
+        # restore color according to current value
+        cur = pgrid[self.r][self.c]
+        if cur == 1:
+            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE), 0)
+        else:
+            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
 
     def oc(self, e):
         if gover:
