@@ -113,8 +113,8 @@ class Cell:
         self.c = c
 
         # feedback events: pressed/released for visual press state
-        b.add_event_cb(self.on_press, lv.EVENT.PRESSED, None)
-        b.add_event_cb(self.on_release, lv.EVENT.RELEASED, None)
+        # b.add_event_cb(self.on_press, lv.EVENT.PRESSED, None)
+        # b.add_event_cb(self.on_release, lv.EVENT.RELEASED, None)
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
 
     def on_press(self, e):
@@ -125,7 +125,7 @@ class Cell:
         # restore color according to current value
         cur = pgrid[self.r][self.c]
         if cur == 1:
-            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE), 0)
+            self.btn.set_style_bg_color(lv.color_black(), 0)
         else:
             self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
 
@@ -135,7 +135,7 @@ class Cell:
         cur = pgrid[self.r][self.c]
         if cur == 0:
             pgrid[self.r][self.c] = 1
-            self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE), 0)
+            self.btn.set_style_bg_color(lv.color_black(), 0)
         else:
             pgrid[self.r][self.c] = 0
             self.btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
