@@ -101,10 +101,6 @@ def check_win():
     show_win()
 
 # --- CELL CLASS ---
-# _cb stores the bound method explicitly to prevent the GC from
-# collecting it (passing self.oc directly to add_event_cb does not
-# create a Python-side reference, which can cause a null-pointer
-# crash on PikaPython when the button is pressed).
 class Cell:
     def __init__(self, p, r, c, x, y, w, h):
         b = lv.btn(p)
@@ -115,8 +111,7 @@ class Cell:
         self.btn = b
         self.r = r
         self.c = c
-        self._cb = self.oc
-        b.add_event_cb(self._cb, lv.EVENT.CLICKED, None)
+        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
 
     def oc(self, e):
         if gover:
