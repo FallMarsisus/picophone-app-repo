@@ -1,0 +1,42 @@
+{
+    "version": "1.0",
+    "radio_count": 6,
+    "items" : [
+        {
+            "id": "nova",
+            "name": "Radio Nova",
+            "stream_url": "http://novazz.ice.infomaniak.ch/novazz-128.mp3",
+            "color": "#979EEF"
+        },
+        {
+            "id": "fr_inter",
+            "name": "France Inter",
+            "stream_url": "http://icecast.radiofrance.fr/franceinter-midfi.mp3",
+            "color": "#E20134"
+        },
+        {
+            "id": "fip",
+            "name": "FIP",
+            "stream_url": "http://icecast.radiofrance.fr/fip-midfi.mp3",
+            "color": "#E2007A"
+        },
+        {
+            "id": "fr_musique",
+            "name": "Fr. Musique",
+            "stream_url": "http://icecast.radiofrance.fr/francemusique-midfi.mp3",
+            "color": "#B10049"
+        },
+        {
+            "id": "skyrock",
+            "name": "Skyrock",
+            "stream_url": "http://icecast.skyrock.net/s/natio_mp3_128k.mp3",
+            "color": "#FC0019"
+        },
+        {
+            "id": "nrj",
+            "name": "NRJ",
+            "stream_url": "http://streaming.nrjaudio.fm/oumvmk8fnozc?origine=fluxradios",
+            "color": "#E5000F"
+        }
+    ]
+}
