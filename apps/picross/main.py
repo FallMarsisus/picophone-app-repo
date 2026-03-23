@@ -56,7 +56,6 @@ c_lbls = []
 gover = False
 rbox = 0
 win_t = 0
-next_t = 0 # Timer global pour le niveau suivant
 
 # --- UI INIT ---
 scr = lv.scr_act()
@@ -114,9 +113,8 @@ def get_c_hint(col_idx):
 
 # --- NEXT LEVEL / REPLAY ---
 def do_next(t):
-    global rbox, gover, c_level, next_t
+    global rbox, gover, c_level
     t._del()
-    next_t = 0
     
     if rbox != 0:
         rbox._del()
@@ -147,11 +145,9 @@ def do_next(t):
     sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
 
 def on_next(evt):
-    global next_t
-    if next_t == 0: # Évite de créer plusieurs timers si on spamme le bouton
-        next_t = lv.timer_create_basic()
-        next_t.set_period(50)
-        next_t.set_cb(do_next)
+    nt = lv.timer_create_basic()
+    nt.set_period(50)
+    nt.set_cb(do_next)
 
 def defer_win(t):
     global rbox, win_t
@@ -191,7 +187,7 @@ def defer_win(t):
     lbl_btn.center()
     
     rbox = mbox_win
-    # CORRECTION CRITIQUE : Retour au "None" pour que l'événement soit bien intercepté
+    # On laisse STRICTEMENT None pour être identique au code original
     btn_win.add_event_cb(on_next, lv.EVENT.CLICKED, None)
 
 # --- LOGIQUE ---
@@ -205,6 +201,7 @@ def check_win():
             if pgrid[r * GRID_SIZE + c] != lr[c]:
                 return
     gover = True
+    # Timer qui empêche le crash graphique de PikaPython / LVGL !
     win_t = lv.timer_create_basic()
     win_t.set_period(150)
     win_t.set_cb(defer_win)
@@ -220,7 +217,6 @@ class Cell:
         self.btn = b
         self.r = r
         self.c = c
-        # Ici aussi, "None" pour être cohérent avec l'original
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
 
     def oc(self, e):
@@ -235,7 +231,6 @@ class Cell:
             pgrid[idx] = 0
             self.btn.set_style_bg_color(lv.color_white(), 0)
         check_win()
-
 
 # --- INDICES DES LIGNES ---
 for r in range(GRID_SIZE):
