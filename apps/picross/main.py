@@ -53,6 +53,7 @@ pgrid = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 cbtn = []
 r_lbls = []
 c_lbls = []
+lvl_instances = []
 gover = False
 
 win_t = 0
@@ -62,13 +63,31 @@ p_btn = 0
 p_lbl = 0
 p_lbl_btn = 0
 
-menu_objs = []
-game_objs = []
-lvl_instances = [] # LA LISTE SALVATRICE !
-
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(lv.color_black(), 0)
+
+# ==========================================
+# GESTION DES CALQUES (LA SOLUTION ANTI-CRASH)
+# ==========================================
+menu_layer = lv.obj(scr)
+menu_layer.set_size(320, 240)
+menu_layer.align(lv.ALIGN.CENTER, 0, 0)
+menu_layer.set_style_bg_color(lv.color_black(), 0)
+menu_layer.set_style_border_width(0, 0)
+menu_layer.set_style_pad_all(0, 0) # Évite l'écran noir et le décalage !
+menu_layer.set_style_radius(0, 0)
+menu_layer.clear_flag(lv.obj.FLAG.SCROLLABLE)
+
+game_layer = lv.obj(scr)
+game_layer.set_size(320, 240)
+game_layer.align(lv.ALIGN.CENTER, 0, 0)
+game_layer.set_style_bg_color(lv.color_black(), 0)
+game_layer.set_style_border_width(0, 0)
+game_layer.set_style_pad_all(0, 0)
+game_layer.set_style_radius(0, 0)
+game_layer.clear_flag(lv.obj.FLAG.SCROLLABLE)
+game_layer.add_flag(lv.obj.FLAG.HIDDEN) # Caché au démarrage
 
 # --- HINTS LOGIC ---
 def get_r_hint(row_data):
@@ -109,23 +128,22 @@ def get_c_hint(col_idx):
         return "0"
     return result
 
+
 # ==========================================
 # 1. CRÉATION DU MENU SÉLECTION
 # ==========================================
 
-stitle = lv.label(scr)
+stitle = lv.label(menu_layer)
 stitle.set_text("CHOIX DU NIVEAU")
 stitle.set_style_text_color(lv.color_white(), 0)
 stitle.align(lv.ALIGN.TOP_MID, 0, 20)
-menu_objs.append(stitle)
 
-hb = lv.btn(scr)
+hb = lv.btn(menu_layer)
 hb.set_size(60, 28)
 hb.align(lv.ALIGN.TOP_LEFT, 4, 6)
 hl = lv.label(hb)
 hl.set_text("< Home")
 hl.center()
-menu_objs.append(hb)
 
 qt = 0
 def dq(t):
@@ -136,9 +154,10 @@ def dq(t):
 
 def oh(evt):
     global qt
-    qt = lv.timer_create_basic()
-    qt.set_period(60)
-    qt.set_cb(dq)
+    if qt == 0:
+        qt = lv.timer_create_basic()
+        qt.set_period(60)
+        qt.set_cb(dq)
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
@@ -161,12 +180,11 @@ def start_level(idx):
 
     sl.set_text("Niveau " + str(c_level + 1))
     
-    for o in menu_objs:
-        o.add_flag(lv.obj.FLAG.HIDDEN)
-    for o in game_objs:
-        o.clear_flag(lv.obj.FLAG.HIDDEN)
+    # BASCULE MAGIQUE EN 2 INSTRUCTIONS C++
+    menu_layer.add_flag(lv.obj.FLAG.HIDDEN)
+    game_layer.clear_flag(lv.obj.FLAG.HIDDEN)
 
-# --- TIMER DE DEMARRAGE DU NIVEAU ---
+
 start_t = 0
 start_idx = 0
 
@@ -175,7 +193,6 @@ def deferred_start_level(t):
     t._del()
     start_t = 0
     start_level(start_idx)
-# ------------------------------------
 
 class LvlBtn:
     def __init__(self, p, idx, x, y, w, h):
@@ -191,9 +208,7 @@ class LvlBtn:
         l.set_style_text_color(lv.color_white(), 0)
         l.center()
         self.lbl = l
-        # None fonctionne pour les méthodes de classes comme dans ton Wordle
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
-        menu_objs.append(b)
 
     def oc(self, e):
         global start_t, start_idx
@@ -208,33 +223,30 @@ for i in range(MAX_LEVELS):
     row = i // 3
     x = 50 + col * 80
     y = 70 + row * 80
-    lb = LvlBtn(scr, i, x, y, 60, 60)
-    lvl_instances.append(lb) # ON GARDE L'OBJET EN MEMOIRE !
+    lb = LvlBtn(menu_layer, i, x, y, 60, 60)
+    lvl_instances.append(lb)
 
 
 # ==========================================
 # 2. CRÉATION DU JEU
 # ==========================================
 
-tl = lv.label(scr)
+tl = lv.label(game_layer)
 tl.set_text("PICROSS")
 tl.set_style_text_color(lv.color_white(), 0)
 tl.align(lv.ALIGN.TOP_MID, 0, 8)
-game_objs.append(tl)
 
-sl = lv.label(scr)
+sl = lv.label(game_layer)
 sl.set_text("Niveau 1")
 sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
 sl.align(lv.ALIGN.TOP_MID, 0, 28)
-game_objs.append(sl)
 
-bb = lv.btn(scr)
+bb = lv.btn(game_layer)
 bb.set_size(60, 28)
 bb.align(lv.ALIGN.TOP_LEFT, 4, 6)
 bl = lv.label(bb)
 bl.set_text("< Ret")
 bl.center()
-game_objs.append(bb)
 
 def go_menu():
     global rbox, p_mbox, p_btn, p_lbl, p_lbl_btn
@@ -246,10 +258,9 @@ def go_menu():
         p_lbl = 0
         p_lbl_btn = 0
     
-    for o in game_objs:
-        o.add_flag(lv.obj.FLAG.HIDDEN)
-    for o in menu_objs:
-        o.clear_flag(lv.obj.FLAG.HIDDEN)
+    # BASCULE INVERSE
+    game_layer.add_flag(lv.obj.FLAG.HIDDEN)
+    menu_layer.clear_flag(lv.obj.FLAG.HIDDEN)
 
 bt = 0
 def db(t):
@@ -260,11 +271,11 @@ def db(t):
 
 def ob(evt):
     global bt
-    bt = lv.timer_create_basic()
-    bt.set_period(60)
-    bt.set_cb(db)
+    if bt == 0:
+        bt = lv.timer_create_basic()
+        bt.set_period(60)
+        bt.set_cb(db)
 
-# ob est une fonction globale, on utilise 0 comme argument (cf Pomodoro)
 bb.add_event_cb(ob, lv.EVENT.CLICKED, 0)
 
 def defer_win(t):
@@ -277,7 +288,7 @@ def defer_win(t):
     sl.set_text("PARFAIT !")
     sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
     
-    p_mbox = lv.obj(scr)
+    p_mbox = lv.obj(scr) # Affiché par-dessus tout
     p_mbox.set_size(220, 120)
     p_mbox.center()
     p_mbox.set_style_bg_color(lv.color_black(), 0)
@@ -298,7 +309,7 @@ def defer_win(t):
     p_btn.set_style_radius(8, 0)
     
     p_lbl_btn = lv.label(p_btn)
-    p_lbl_btn.set_text("Retour")
+    p_lbl_btn.set_text("Retour Menu")
     p_lbl_btn.set_style_text_color(lv.color_white(), 0)
     p_lbl_btn.center()
     
@@ -330,7 +341,6 @@ class Cell:
         self.r = r
         self.c = c
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
-        game_objs.append(b)
 
     def oc(self, e):
         if gover:
@@ -345,37 +355,26 @@ class Cell:
             self.btn.set_style_bg_color(lv.color_white(), 0)
         check_win()
 
-# --- CRÉATION DE LA GRILLE ET DES INDICES ---
+# --- CRÉATION DE LA GRILLE ET DES INDICES DANS GAME_LAYER ---
 for r in range(GRID_SIZE):
-    lbl = lv.label(scr)
+    lbl = lv.label(game_layer)
     lbl.set_text(get_r_hint(LEVEL[r]))
     lbl.set_style_text_color(lv.color_white(), 0)
     lbl.align(lv.ALIGN.TOP_LEFT, GRID_X - 40, GRID_Y + r * (CELL_SIZE + CELL_GAP) + 10)
     r_lbls.append(lbl)
-    game_objs.append(lbl)
 
 for c in range(GRID_SIZE):
-    lbl = lv.label(scr)
+    lbl = lv.label(game_layer)
     lbl.set_text(get_c_hint(c))
     lbl.set_style_text_color(lv.color_white(), 0)
     lbl.align(lv.ALIGN.TOP_LEFT, GRID_X + c * (CELL_SIZE + CELL_GAP) + 15, GRID_Y - 40)
     c_lbls.append(lbl)
-    game_objs.append(lbl)
 
 for r in range(GRID_SIZE):
     row_btns = []
     for c in range(GRID_SIZE):
         tx = GRID_X + c * (CELL_SIZE + CELL_GAP)
         ty = GRID_Y + r * (CELL_SIZE + CELL_GAP)
-        cell = Cell(scr, r, c, tx, ty, CELL_SIZE, CELL_SIZE)
+        cell = Cell(game_layer, r, c, tx, ty, CELL_SIZE, CELL_SIZE)
         row_btns.append(cell)
     cbtn.append(row_btns)
-
-# ==========================================
-# 3. INITIALISATION DU DÉMARRAGE
-# ==========================================
-
-for o in game_objs:
-    o.add_flag(lv.obj.FLAG.HIDDEN)
-for o in menu_objs:
-    o.clear_flag(lv.obj.FLAG.HIDDEN)
