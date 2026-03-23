@@ -11,8 +11,6 @@ MAX_LEVELS = 4
 c_level = 0
 LEVEL = []
 
-# PikaPython n'aime pas les tableaux 3D. 
-# On utilise une fonction pour charger les tableaux 2D un par un.
 def init_level(lvl):
     global LEVEL
     if lvl == 0:
@@ -48,7 +46,6 @@ def init_level(lvl):
             [1, 0, 1, 0, 1]
         ]
 
-# Initialisation du premier niveau
 init_level(c_level)
 
 pgrid = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -58,6 +55,7 @@ r_lbls = []
 c_lbls = []
 gover = False
 rbox = 0
+win_t = 0 # Timer pour gérer la victoire sans crasher
 
 # --- UI INIT ---
 scr = lv.scr_act()
@@ -124,7 +122,7 @@ def do_next(t):
     # Passage au niveau suivant
     c_level = c_level + 1
     if c_level >= MAX_LEVELS:
-        c_level = 0 # Reboucle au début
+        c_level = 0
         
     init_level(c_level)
     gover = False
@@ -150,52 +148,60 @@ def on_next(evt):
     nt.set_period(50)
     nt.set_cb(do_next)
 
-def show_win():
-    global rbox
-    mbox = lv.obj(scr)
-    mbox.set_size(220, 120)
-    mbox.center()
-    mbox.set_style_bg_color(lv.color_black(), 0)
-    mbox.set_style_border_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    mbox.set_style_border_width(2, 0)
-    mbox.set_style_radius(12, 0)
-    mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
+def defer_win(t):
+    global rbox, win_t
+    t._del()
+    win_t = 0
     
-    ml = lv.label(mbox)
-    ml.set_text("GAGNE !")
-    ml.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    ml.align(lv.ALIGN.TOP_MID, 0, 18)
+    sl.set_text("PARFAIT !")
+    sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
     
-    rb = lv.btn(mbox)
-    rb.set_size(140, 36)
-    rb.align(lv.ALIGN.BOTTOM_MID, 0, -12)
-    rb.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    rb.set_style_radius(8, 0)
+    mbox_win = lv.obj(scr)
+    mbox_win.set_size(220, 120)
+    mbox_win.center()
+    mbox_win.set_style_bg_color(lv.color_black(), 0)
+    mbox_win.set_style_border_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    mbox_win.set_style_border_width(2, 0)
+    mbox_win.set_style_radius(12, 0)
+    mbox_win.clear_flag(lv.obj.FLAG.SCROLLABLE)
     
-    rl = lv.label(rb)
+    lbl_win = lv.label(mbox_win)
+    lbl_win.set_text("GAGNE !")
+    lbl_win.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    lbl_win.align(lv.ALIGN.TOP_MID, 0, 18)
+    
+    btn_win = lv.btn(mbox_win)
+    btn_win.set_size(140, 36)
+    btn_win.align(lv.ALIGN.BOTTOM_MID, 0, -12)
+    btn_win.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    btn_win.set_style_radius(8, 0)
+    
+    lbl_btn = lv.label(btn_win)
     if c_level < MAX_LEVELS - 1:
-        rl.set_text("Niveau Suiv.")
+        lbl_btn.set_text("Niveau Suiv.")
     else:
-        rl.set_text("Recommencer")
+        lbl_btn.set_text("Recommencer")
         
-    rl.set_style_text_color(lv.color_white(), 0)
-    rl.center()
+    lbl_btn.set_style_text_color(lv.color_white(), 0)
+    lbl_btn.center()
     
-    rbox = mbox
-    rb.add_event_cb(on_next, lv.EVENT.CLICKED, None)
+    rbox = mbox_win
+    # IMPORTANT: On utilise 0 au lieu de None pour éviter le segfault de Pika
+    btn_win.add_event_cb(on_next, lv.EVENT.CLICKED, 0)
 
 # --- LOGIQUE ---
 def check_win():
-    global gover
+    global gover, win_t
     for r in range(GRID_SIZE):
         lr = LEVEL[r]
         for c in range(GRID_SIZE):
             if pgrid[r * GRID_SIZE + c] != lr[c]:
                 return
     gover = True
-    sl.set_text("PARFAIT !")
-    sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    show_win()
+    # On délègue l'affichage de la victoire à un timer pour laisser LVGL souffler
+    win_t = lv.timer_create_basic()
+    win_t.set_period(150)
+    win_t.set_cb(defer_win)
 
 # --- CELL CLASS ---
 class Cell:
@@ -208,7 +214,8 @@ class Cell:
         self.btn = b
         self.r = r
         self.c = c
-        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+        # Utilisation stricte de 0 au lieu de None
+        b.add_event_cb(self.oc, lv.EVENT.CLICKED, 0)
 
     def oc(self, e):
         if gover:
@@ -242,13 +249,13 @@ for c in range(GRID_SIZE):
 
 # --- CREATION GRILLE ---
 for r in range(GRID_SIZE):
-    rb = []
+    row_btns = []
     for c in range(GRID_SIZE):
         tx = GRID_X + c * (CELL_SIZE + CELL_GAP)
         ty = GRID_Y + r * (CELL_SIZE + CELL_GAP)
         cell = Cell(scr, r, c, tx, ty, CELL_SIZE, CELL_SIZE)
-        rb.append(cell)
-    cbtn.append(rb)
+        row_btns.append(cell)
+    cbtn.append(row_btns)
 
 # --- BOUTON HOME ---
 hb = lv.btn(scr)
