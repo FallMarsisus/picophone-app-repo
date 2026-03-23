@@ -62,11 +62,9 @@ p_btn = 0
 p_lbl = 0
 p_lbl_btn = 0
 
-# Ces listes vont contenir les éléments de chaque "écran"
 menu_objs = []
 game_objs = []
 
-# L'écran principal (unique !)
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(lv.color_black(), 0)
@@ -111,7 +109,7 @@ def get_c_hint(col_idx):
     return result
 
 # ==========================================
-# 1. CRÉATION DU MENU SÉLECTION (Ajouté dans menu_objs)
+# 1. CRÉATION DU MENU SÉLECTION
 # ==========================================
 
 stitle = lv.label(scr)
@@ -143,21 +141,18 @@ def oh(evt):
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
-# Fonction pour lancer un niveau depuis le menu
 def start_level(idx):
     global c_level, gover
     c_level = idx
     init_level(c_level)
     gover = False
     
-    # Réinitialisation
     for r in range(GRID_SIZE):
         for c in range(GRID_SIZE):
             pgrid[r * GRID_SIZE + c] = 0
             cr = cbtn[r]
             cr[c].btn.set_style_bg_color(lv.color_white(), 0)
             
-    # Mise à jour des indices
     for r in range(GRID_SIZE):
         r_lbls[r].set_text(get_r_hint(LEVEL[r]))
     for c in range(GRID_SIZE):
@@ -165,11 +160,21 @@ def start_level(idx):
 
     sl.set_text("Niveau " + str(c_level + 1))
     
-    # Bascule des écrans : on cache le menu, on montre le jeu
     for o in menu_objs:
         o.add_flag(lv.obj.FLAG.HIDDEN)
     for o in game_objs:
         o.clear_flag(lv.obj.FLAG.HIDDEN)
+
+# --- TIMER DE DEMARRAGE DU NIVEAU ---
+start_t = 0
+start_idx = 0
+
+def deferred_start_level(t):
+    global start_t, start_idx
+    t._del()
+    start_t = 0
+    start_level(start_idx)
+# ------------------------------------
 
 class LvlBtn:
     def __init__(self, p, idx, x, y, w, h):
@@ -186,12 +191,17 @@ class LvlBtn:
         l.center()
         self.lbl = l
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
-        menu_objs.append(b) # Ajout à la liste du menu !
+        menu_objs.append(b)
 
     def oc(self, e):
-        start_level(self.idx)
+        # Utilisation du timer pour ne pas crasher le MCU !
+        global start_t, start_idx
+        start_idx = self.idx
+        if start_t == 0:
+            start_t = lv.timer_create_basic()
+            start_t.set_period(50)
+            start_t.set_cb(deferred_start_level)
 
-# Grille des 4 niveaux (3 par ligne)
 for i in range(MAX_LEVELS):
     col = i % 3
     row = i // 3
@@ -201,7 +211,7 @@ for i in range(MAX_LEVELS):
 
 
 # ==========================================
-# 2. CRÉATION DU JEU (Ajouté dans game_objs)
+# 2. CRÉATION DU JEU
 # ==========================================
 
 tl = lv.label(scr)
@@ -216,7 +226,6 @@ sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
 sl.align(lv.ALIGN.TOP_MID, 0, 28)
 game_objs.append(sl)
 
-# Bouton "< Ret" à la place de "< Home"
 bb = lv.btn(scr)
 bb.set_size(60, 28)
 bb.align(lv.ALIGN.TOP_LEFT, 4, 6)
@@ -227,7 +236,6 @@ game_objs.append(bb)
 
 def go_menu():
     global rbox, p_mbox, p_btn, p_lbl, p_lbl_btn
-    # Nettoyage popup victoire si elle existe
     if rbox != 0:
         rbox._del()
         rbox = 0
@@ -236,7 +244,6 @@ def go_menu():
         p_lbl = 0
         p_lbl_btn = 0
     
-    # Bascule inverse : on cache le jeu, on montre le menu
     for o in game_objs:
         o.add_flag(lv.obj.FLAG.HIDDEN)
     for o in menu_objs:
@@ -257,7 +264,6 @@ def ob(evt):
 
 bb.add_event_cb(ob, lv.EVENT.CLICKED, 0)
 
-# Fonction de victoire
 def defer_win(t):
     global rbox, win_t
     global p_mbox, p_btn, p_lbl, p_lbl_btn
@@ -294,7 +300,6 @@ def defer_win(t):
     p_lbl_btn.center()
     
     rbox = p_mbox
-    # Le bouton "Retour" de la victoire utilise le même événement "ob" que le bouton "< Ret"
     p_btn.add_event_cb(ob, lv.EVENT.CLICKED, None)
 
 def check_win():
@@ -322,7 +327,7 @@ class Cell:
         self.r = r
         self.c = c
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
-        game_objs.append(b) # Ajout à la liste du jeu !
+        game_objs.append(b)
 
     def oc(self, e):
         if gover:
@@ -367,7 +372,6 @@ for r in range(GRID_SIZE):
 # 3. INITIALISATION DU DÉMARRAGE
 # ==========================================
 
-# Au lancement de l'application, on cache le jeu et on montre le menu
 for o in game_objs:
     o.add_flag(lv.obj.FLAG.HIDDEN)
 for o in menu_objs:
