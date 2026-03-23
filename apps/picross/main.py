@@ -64,6 +64,7 @@ p_lbl_btn = 0
 
 menu_objs = []
 game_objs = []
+lvl_instances = [] # LA LISTE SALVATRICE !
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -190,11 +191,11 @@ class LvlBtn:
         l.set_style_text_color(lv.color_white(), 0)
         l.center()
         self.lbl = l
+        # None fonctionne pour les méthodes de classes comme dans ton Wordle
         b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
         menu_objs.append(b)
 
     def oc(self, e):
-        # Utilisation du timer pour ne pas crasher le MCU !
         global start_t, start_idx
         start_idx = self.idx
         if start_t == 0:
@@ -208,6 +209,7 @@ for i in range(MAX_LEVELS):
     x = 50 + col * 80
     y = 70 + row * 80
     lb = LvlBtn(scr, i, x, y, 60, 60)
+    lvl_instances.append(lb) # ON GARDE L'OBJET EN MEMOIRE !
 
 
 # ==========================================
@@ -262,6 +264,7 @@ def ob(evt):
     bt.set_period(60)
     bt.set_cb(db)
 
+# ob est une fonction globale, on utilise 0 comme argument (cf Pomodoro)
 bb.add_event_cb(ob, lv.EVENT.CLICKED, 0)
 
 def defer_win(t):
@@ -300,7 +303,7 @@ def defer_win(t):
     p_lbl_btn.center()
     
     rbox = p_mbox
-    p_btn.add_event_cb(ob, lv.EVENT.CLICKED, None)
+    p_btn.add_event_cb(ob, lv.EVENT.CLICKED, 0)
 
 def check_win():
     global gover, win_t
