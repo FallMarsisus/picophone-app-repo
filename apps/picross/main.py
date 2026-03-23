@@ -54,8 +54,14 @@ cbtn = []
 r_lbls = []
 c_lbls = []
 gover = False
-rbox = 0
 win_t = 0
+
+# Variables globales strictes pour maintenir l'interface en vie
+rbox = 0
+p_mbox = 0
+p_btn = 0
+p_lbl = 0
+p_lbl_btn = 0
 
 # --- UI INIT ---
 scr = lv.scr_act()
@@ -114,11 +120,17 @@ def get_c_hint(col_idx):
 # --- NEXT LEVEL / REPLAY ---
 def do_next(t):
     global rbox, gover, c_level
+    global p_mbox, p_btn, p_lbl, p_lbl_btn
     t._del()
     
+    # Nettoyage sécurisé de la popup
     if rbox != 0:
         rbox._del()
         rbox = 0
+        p_mbox = 0
+        p_btn = 0
+        p_lbl = 0
+        p_lbl_btn = 0
     
     # Passage au niveau suivant
     c_level = c_level + 1
@@ -151,44 +163,46 @@ def on_next(evt):
 
 def defer_win(t):
     global rbox, win_t
+    global p_mbox, p_btn, p_lbl, p_lbl_btn
+    
     t._del()
     win_t = 0
     
     sl.set_text("PARFAIT !")
     sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
     
-    mbox_win = lv.obj(scr)
-    mbox_win.set_size(220, 120)
-    mbox_win.center()
-    mbox_win.set_style_bg_color(lv.color_black(), 0)
-    mbox_win.set_style_border_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    mbox_win.set_style_border_width(2, 0)
-    mbox_win.set_style_radius(12, 0)
-    mbox_win.clear_flag(lv.obj.FLAG.SCROLLABLE)
+    # On assigne aux variables globales pour survivre au Garbage Collector
+    p_mbox = lv.obj(scr)
+    p_mbox.set_size(220, 120)
+    p_mbox.center()
+    p_mbox.set_style_bg_color(lv.color_black(), 0)
+    p_mbox.set_style_border_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    p_mbox.set_style_border_width(2, 0)
+    p_mbox.set_style_radius(12, 0)
+    p_mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
     
-    lbl_win = lv.label(mbox_win)
-    lbl_win.set_text("GAGNE !")
-    lbl_win.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    lbl_win.align(lv.ALIGN.TOP_MID, 0, 18)
+    p_lbl = lv.label(p_mbox)
+    p_lbl.set_text("GAGNE !")
+    p_lbl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    p_lbl.align(lv.ALIGN.TOP_MID, 0, 18)
     
-    btn_win = lv.btn(mbox_win)
-    btn_win.set_size(140, 36)
-    btn_win.align(lv.ALIGN.BOTTOM_MID, 0, -12)
-    btn_win.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    btn_win.set_style_radius(8, 0)
+    p_btn = lv.btn(p_mbox)
+    p_btn.set_size(140, 36)
+    p_btn.align(lv.ALIGN.BOTTOM_MID, 0, -12)
+    p_btn.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    p_btn.set_style_radius(8, 0)
     
-    lbl_btn = lv.label(btn_win)
+    p_lbl_btn = lv.label(p_btn)
     if c_level < MAX_LEVELS - 1:
-        lbl_btn.set_text("Niveau Suiv.")
+        p_lbl_btn.set_text("Niveau Suiv.")
     else:
-        lbl_btn.set_text("Recommencer")
+        p_lbl_btn.set_text("Recommencer")
         
-    lbl_btn.set_style_text_color(lv.color_white(), 0)
-    lbl_btn.center()
+    p_lbl_btn.set_style_text_color(lv.color_white(), 0)
+    p_lbl_btn.center()
     
-    rbox = mbox_win
-    # On laisse STRICTEMENT None pour être identique au code original
-    btn_win.add_event_cb(on_next, lv.EVENT.CLICKED, None)
+    rbox = p_mbox
+    p_btn.add_event_cb(on_next, lv.EVENT.CLICKED, None)
 
 # --- LOGIQUE ---
 def check_win():
@@ -201,7 +215,6 @@ def check_win():
             if pgrid[r * GRID_SIZE + c] != lr[c]:
                 return
     gover = True
-    # Timer qui empêche le crash graphique de PikaPython / LVGL !
     win_t = lv.timer_create_basic()
     win_t.set_period(150)
     win_t.set_cb(defer_win)
