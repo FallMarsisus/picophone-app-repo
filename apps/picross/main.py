@@ -7,27 +7,59 @@ CELL_GAP = 4
 GRID_X = (320 - (CELL_SIZE * 5 + CELL_GAP * 4)) // 2 + 20
 GRID_Y = 120
 
-LEVEL = [
-    [1, 1, 1, 1, 1],
-    [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1]
-]
+MAX_LEVELS = 4
+c_level = 0
+LEVEL = []
 
-pgrid = [
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
-]
+# PikaPython n'aime pas les tableaux 3D. 
+# On utilise une fonction pour charger les tableaux 2D un par un.
+def init_level(lvl):
+    global LEVEL
+    if lvl == 0:
+        LEVEL = [
+            [1, 1, 1, 1, 1],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+            [1, 0, 1, 0, 1]
+        ]
+    elif lvl == 1:
+        LEVEL = [
+            [1, 0, 0, 0, 1],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0],
+            [1, 0, 0, 0, 1]
+        ]
+    elif lvl == 2:
+        LEVEL = [
+            [1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1]
+        ]
+    elif lvl == 3:
+        LEVEL = [
+            [1, 0, 1, 0, 1],
+            [0, 1, 0, 1, 0],
+            [1, 0, 1, 0, 1],
+            [0, 1, 0, 1, 0],
+            [1, 0, 1, 0, 1]
+        ]
+
+# Initialisation du premier niveau
+init_level(c_level)
+
+pgrid = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 cbtn = []
+r_lbls = []
+c_lbls = []
 gover = False
 rbox = 0
 
-# --- UI INIT ---w
+# --- UI INIT ---
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
 scr.set_style_bg_color(lv.color_black(), 0)
@@ -38,101 +70,11 @@ tl.set_style_text_color(lv.color_white(), 0)
 tl.align(lv.ALIGN.TOP_MID, 0, 8)
 
 sl = lv.label(scr)
-sl.set_text("Joue !")
+sl.set_text("Niveau 1")
 sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
 sl.align(lv.ALIGN.TOP_MID, 0, 28)
 
-# --- REPLAY ---
-def do_rp(t):
-    global rbox, gover
-    t._del()
-    if rbox != 0:
-        rbox._del()
-        rbox = 0
-    gover = False
-    for r in range(GRID_SIZE):
-        for c in range(GRID_SIZE):
-            pr = pgrid[r]
-            pr[c] = 0
-            cr = cbtn[r]
-            cr[c].btn.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
-    sl.set_text("Joue !")
-    sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
-
-def on_rp(evt):
-    rt = lv.timer_create_basic()
-    rt.set_period(50)
-    rt.set_cb(do_rp)
-
-def show_win():
-    global rbox
-    mbox = lv.obj(scr)
-    mbox.set_size(220, 120)
-    mbox.center()
-    mbox.set_style_bg_color(lv.color_black(), 0)
-    mbox.set_style_border_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    mbox.set_style_border_width(2, 0)
-    mbox.set_style_radius(12, 0)
-    mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
-    ml = lv.label(mbox)
-    ml.set_text("GAGNE !")
-    ml.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    ml.align(lv.ALIGN.TOP_MID, 0, 18)
-    rb = lv.btn(mbox)
-    rb.set_size(120, 36)
-    rb.align(lv.ALIGN.BOTTOM_MID, 0, -12)
-    rb.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    rb.set_style_radius(8, 0)
-    rl = lv.label(rb)
-    rl.set_text("Rejouer")
-    rl.set_style_text_color(lv.color_white(), 0)
-    rl.center()
-    rbox = mbox
-    rb.add_event_cb(on_rp, lv.EVENT.CLICKED, None)
-
-# --- LOGIQUE ---
-def check_win():
-    global gover
-    for r in range(GRID_SIZE):
-        pr = pgrid[r]
-        lr = LEVEL[r]
-        for c in range(GRID_SIZE):
-            if pr[c] != lr[c]:
-                return
-    gover = True
-    sl.set_text("GAGNE !")
-    sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
-    show_win()
-
-# --- CELL CLASS ---
-class Cell:
-    def __init__(self, p, r, c, x, y, w, h):
-        b = lv.btn(p)
-        b.set_size(w, h)
-        b.align(lv.ALIGN.TOP_LEFT, x, y)
-        b.set_style_bg_color(lv.color_white(), 0)
-        b.set_style_radius(4, 0)
-        self.btn = b
-        self.r = r
-        self.c = c
-        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
-
-    def oc(self, e):
-        if gover:
-            return
-        pr = pgrid[self.r]
-        cur = pr[self.c]
-        if cur == 0:
-            pr[self.c] = 1
-            self.btn.set_style_bg_color(lv.color_black(), 0)
-        else:
-            pr[self.c] = 0
-            self.btn.set_style_bg_color(lv.color_white(), 0)
-        check_win()
-
 # --- HINTS ---
-# str.join() on lists can misbehave on some PikaPython builds;
-# manual concatenation is used instead.
 def get_r_hint(row_data):
     result = ""
     count = 0
@@ -171,12 +113,124 @@ def get_c_hint(col_idx):
         return "0"
     return result
 
+# --- NEXT LEVEL / REPLAY ---
+def do_next(t):
+    global rbox, gover, c_level
+    t._del()
+    if rbox != 0:
+        rbox._del()
+        rbox = 0
+    
+    # Passage au niveau suivant
+    c_level = c_level + 1
+    if c_level >= MAX_LEVELS:
+        c_level = 0 # Reboucle au début
+        
+    init_level(c_level)
+    gover = False
+    
+    # Réinitialisation de la grille
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            pgrid[r * GRID_SIZE + c] = 0
+            cr = cbtn[r]
+            cr[c].btn.set_style_bg_color(lv.color_white(), 0)
+            
+    # Mise à jour des indices
+    for r in range(GRID_SIZE):
+        r_lbls[r].set_text(get_r_hint(LEVEL[r]))
+    for c in range(GRID_SIZE):
+        c_lbls[c].set_text(get_c_hint(c))
+
+    sl.set_text("Niveau " + str(c_level + 1))
+    sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
+
+def on_next(evt):
+    nt = lv.timer_create_basic()
+    nt.set_period(50)
+    nt.set_cb(do_next)
+
+def show_win():
+    global rbox
+    mbox = lv.obj(scr)
+    mbox.set_size(220, 120)
+    mbox.center()
+    mbox.set_style_bg_color(lv.color_black(), 0)
+    mbox.set_style_border_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    mbox.set_style_border_width(2, 0)
+    mbox.set_style_radius(12, 0)
+    mbox.clear_flag(lv.obj.FLAG.SCROLLABLE)
+    
+    ml = lv.label(mbox)
+    ml.set_text("GAGNE !")
+    ml.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    ml.align(lv.ALIGN.TOP_MID, 0, 18)
+    
+    rb = lv.btn(mbox)
+    rb.set_size(140, 36)
+    rb.align(lv.ALIGN.BOTTOM_MID, 0, -12)
+    rb.set_style_bg_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    rb.set_style_radius(8, 0)
+    
+    rl = lv.label(rb)
+    if c_level < MAX_LEVELS - 1:
+        rl.set_text("Niveau Suiv.")
+    else:
+        rl.set_text("Recommencer")
+        
+    rl.set_style_text_color(lv.color_white(), 0)
+    rl.center()
+    
+    rbox = mbox
+    rb.add_event_cb(on_next, lv.EVENT.CLICKED, None)
+
+# --- LOGIQUE ---
+def check_win():
+    global gover
+    for r in range(GRID_SIZE):
+        lr = LEVEL[r]
+        for c in range(GRID_SIZE):
+            if pgrid[r * GRID_SIZE + c] != lr[c]:
+                return
+    gover = True
+    sl.set_text("PARFAIT !")
+    sl.set_style_text_color(lv.palette_main(lv.PALETTE.GREEN), 0)
+    show_win()
+
+# --- CELL CLASS ---
+class Cell:
+    def __init__(self, p, r, c, x, y, w, h):
+        b = lv.btn(p)
+        b.set_size(w, h)
+        b.align(lv.ALIGN.TOP_LEFT, x, y)
+        b.set_style_bg_color(lv.color_white(), 0)
+        b.set_style_radius(4, 0)
+        self.btn = b
+        self.r = r
+        self.c = c
+        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+
+    def oc(self, e):
+        if gover:
+            return
+        idx = self.r * GRID_SIZE + self.c
+        cur = pgrid[idx]
+        if cur == 0:
+            pgrid[idx] = 1
+            self.btn.set_style_bg_color(lv.color_black(), 0)
+        else:
+            pgrid[idx] = 0
+            self.btn.set_style_bg_color(lv.color_white(), 0)
+        check_win()
+
+
 # --- INDICES DES LIGNES ---
 for r in range(GRID_SIZE):
     lbl = lv.label(scr)
     lbl.set_text(get_r_hint(LEVEL[r]))
     lbl.set_style_text_color(lv.color_white(), 0)
     lbl.align(lv.ALIGN.TOP_LEFT, GRID_X - 40, GRID_Y + r * (CELL_SIZE + CELL_GAP) + 10)
+    r_lbls.append(lbl)
 
 # --- INDICES DES COLONNES ---
 for c in range(GRID_SIZE):
@@ -184,6 +238,7 @@ for c in range(GRID_SIZE):
     lbl.set_text(get_c_hint(c))
     lbl.set_style_text_color(lv.color_white(), 0)
     lbl.align(lv.ALIGN.TOP_LEFT, GRID_X + c * (CELL_SIZE + CELL_GAP) + 15, GRID_Y - 40)
+    c_lbls.append(lbl)
 
 # --- CREATION GRILLE ---
 for r in range(GRID_SIZE):
@@ -218,4 +273,3 @@ def oh(evt):
     qt.set_cb(dq)
 
 hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
-# ---- FIN ----
