@@ -1,5 +1,25 @@
 import pika_lvgl as lv
 
+# PikaPython/LVGL compat:
+# Certaines builds n'exposent pas lv.obj.set_style_pad_all().
+# Si une couche commune (menu/launcher) l'appelle, on évite le crash.
+def _compat_set_style_pad_all(self, pad, selector):
+    f = getattr(self, "set_style_pad_left", 0)
+    if f != 0:
+        f(pad, selector)
+    f = getattr(self, "set_style_pad_right", 0)
+    if f != 0:
+        f(pad, selector)
+    f = getattr(self, "set_style_pad_top", 0)
+    if f != 0:
+        f(pad, selector)
+    f = getattr(self, "set_style_pad_bottom", 0)
+    if f != 0:
+        f(pad, selector)
+
+
+lv.obj.set_style_pad_all = _compat_set_style_pad_all
+
 # --- CONFIG ---
 GRID_SIZE = 5
 CELL_SIZE = 40
