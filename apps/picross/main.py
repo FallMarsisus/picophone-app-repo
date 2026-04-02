@@ -62,6 +62,8 @@ p_mbox = 0
 p_btn = 0
 p_lbl = 0
 p_lbl_btn = 0
+ui_ready = 0
+dbg_lbl = 0
 
 scr = lv.scr_act()
 scr.clear_flag(lv.obj.FLAG.SCROLLABLE)
@@ -136,6 +138,15 @@ stitle.set_text("CHOIX DU NIVEAU")
 stitle.set_style_text_color(lv.color_white(), 0)
 stitle.align(lv.ALIGN.TOP_MID, 0, 20)
 
+dbg_lbl = lv.label(menu_layer)
+dbg_lbl.set_text("DBG: boot")
+dbg_lbl.set_style_text_color(lv.palette_main(lv.PALETTE.GREY), 0)
+dbg_lbl.align(lv.ALIGN.TOP_LEFT, 8, 224)
+
+def set_dbg(msg):
+    if dbg_lbl != 0:
+        dbg_lbl.set_text("DBG: " + msg)
+
 hb = lv.btn(menu_layer)
 hb.set_size(60, 28)
 hb.align(lv.ALIGN.TOP_LEFT, 4, 6)
@@ -161,6 +172,9 @@ hb.add_event_cb(oh, lv.EVENT.CLICKED, 0)
 
 def start_level(idx):
     global c_level, gover
+    if ui_ready == 0:
+        return
+    set_dbg("start 1")
     c_level = idx
     init_level(c_level)
     gover = False
@@ -177,40 +191,29 @@ def start_level(idx):
         c_lbls[c].set_text(get_c_hint(c))
 
     sl.set_text("Niveau " + str(c_level + 1))
+    set_dbg("start 2")
     
     # BASCULE MAGIQUE EN 2 INSTRUCTIONS C++
     menu_layer.add_flag(lv.obj.FLAG.HIDDEN)
     game_layer.clear_flag(lv.obj.FLAG.HIDDEN)
+    set_dbg("start ok")
 
-
-start_t = 0
-start_idx = 0
-
-def deferred_start_level(t):
-    global start_t, start_idx
-    t._del()
-    start_t = 0
-    start_level(start_idx)
-
-def queue_start_level(idx):
-    global start_t, start_idx
-    start_idx = idx
-    if start_t == 0:
-        start_t = lv.timer_create_basic()
-        start_t.set_period(50)
-        start_t.set_cb(deferred_start_level)
 
 def on_level_0(evt):
-    queue_start_level(0)
+    set_dbg("tap 0")
+    start_level(0)
 
 def on_level_1(evt):
-    queue_start_level(1)
+    set_dbg("tap 1")
+    start_level(1)
 
 def on_level_2(evt):
-    queue_start_level(2)
+    set_dbg("tap 2")
+    start_level(2)
 
 def on_level_3(evt):
-    queue_start_level(3)
+    set_dbg("tap 3")
+    start_level(3)
 
 for i in range(MAX_LEVELS):
     col = i % 3
@@ -341,6 +344,8 @@ def check_win():
     win_t.set_cb(defer_win)
 
 def toggle_cell_idx(idx):
+    if ui_ready == 0:
+        return
     if gover:
         return
     cur = pgrid[idx]
@@ -430,14 +435,6 @@ def on_cell_23(evt):
 def on_cell_24(evt):
     toggle_cell_idx(24)
 
-CELL_CBS = [
-    on_cell_0, on_cell_1, on_cell_2, on_cell_3, on_cell_4,
-    on_cell_5, on_cell_6, on_cell_7, on_cell_8, on_cell_9,
-    on_cell_10, on_cell_11, on_cell_12, on_cell_13, on_cell_14,
-    on_cell_15, on_cell_16, on_cell_17, on_cell_18, on_cell_19,
-    on_cell_20, on_cell_21, on_cell_22, on_cell_23, on_cell_24
-]
-
 # --- CRÉATION DE LA GRILLE ET DES INDICES DANS GAME_LAYER ---
 for r in range(GRID_SIZE):
     lbl = lv.label(game_layer)
@@ -464,7 +461,58 @@ for r in range(GRID_SIZE):
         cell_btn.set_style_bg_color(lv.color_white(), 0)
         cell_btn.set_style_radius(4, 0)
         idx = r * GRID_SIZE + c
-        cb = CELL_CBS[idx]
+        if idx == 0:
+            cb = on_cell_0
+        elif idx == 1:
+            cb = on_cell_1
+        elif idx == 2:
+            cb = on_cell_2
+        elif idx == 3:
+            cb = on_cell_3
+        elif idx == 4:
+            cb = on_cell_4
+        elif idx == 5:
+            cb = on_cell_5
+        elif idx == 6:
+            cb = on_cell_6
+        elif idx == 7:
+            cb = on_cell_7
+        elif idx == 8:
+            cb = on_cell_8
+        elif idx == 9:
+            cb = on_cell_9
+        elif idx == 10:
+            cb = on_cell_10
+        elif idx == 11:
+            cb = on_cell_11
+        elif idx == 12:
+            cb = on_cell_12
+        elif idx == 13:
+            cb = on_cell_13
+        elif idx == 14:
+            cb = on_cell_14
+        elif idx == 15:
+            cb = on_cell_15
+        elif idx == 16:
+            cb = on_cell_16
+        elif idx == 17:
+            cb = on_cell_17
+        elif idx == 18:
+            cb = on_cell_18
+        elif idx == 19:
+            cb = on_cell_19
+        elif idx == 20:
+            cb = on_cell_20
+        elif idx == 21:
+            cb = on_cell_21
+        elif idx == 22:
+            cb = on_cell_22
+        elif idx == 23:
+            cb = on_cell_23
+        else:
+            cb = on_cell_24
         cell_btn.add_event_cb(cb, lv.EVENT.CLICKED, 0)
         row_btns.append(cell_btn)
     cbtn.append(row_btns)
+
+ui_ready = 1
