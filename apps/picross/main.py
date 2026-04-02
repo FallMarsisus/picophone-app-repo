@@ -1,25 +1,5 @@
 import pika_lvgl as lv
 
-# PikaPython/LVGL compat:
-# Certaines builds n'exposent pas lv.obj.set_style_pad_all().
-# Si une couche commune (menu/launcher) l'appelle, on évite le crash.
-def _compat_set_style_pad_all(self, pad, selector):
-    f = getattr(self, "set_style_pad_left", 0)
-    if f != 0:
-        f(pad, selector)
-    f = getattr(self, "set_style_pad_right", 0)
-    if f != 0:
-        f(pad, selector)
-    f = getattr(self, "set_style_pad_top", 0)
-    if f != 0:
-        f(pad, selector)
-    f = getattr(self, "set_style_pad_bottom", 0)
-    if f != 0:
-        f(pad, selector)
-
-
-lv.obj.set_style_pad_all = _compat_set_style_pad_all
-
 # --- CONFIG ---
 GRID_SIZE = 5
 CELL_SIZE = 40
@@ -95,7 +75,6 @@ menu_layer.set_size(320, 240)
 menu_layer.align(lv.ALIGN.CENTER, 0, 0)
 menu_layer.set_style_bg_color(lv.color_black(), 0)
 menu_layer.set_style_border_width(0, 0)
-menu_layer.set_style_pad_all(0, 0) # Évite l'écran noir et le décalage !
 menu_layer.set_style_radius(0, 0)
 menu_layer.clear_flag(lv.obj.FLAG.SCROLLABLE)
 
@@ -104,7 +83,6 @@ game_layer.set_size(320, 240)
 game_layer.align(lv.ALIGN.CENTER, 0, 0)
 game_layer.set_style_bg_color(lv.color_black(), 0)
 game_layer.set_style_border_width(0, 0)
-game_layer.set_style_pad_all(0, 0)
 game_layer.set_style_radius(0, 0)
 game_layer.clear_flag(lv.obj.FLAG.SCROLLABLE)
 game_layer.add_flag(lv.obj.FLAG.HIDDEN) # Caché au démarrage
