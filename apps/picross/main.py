@@ -192,37 +192,49 @@ def deferred_start_level(t):
     start_t = 0
     start_level(start_idx)
 
-class LvlBtn:
-    def __init__(self, p, idx, x, y, w, h):
-        b = lv.btn(p)
-        b.set_size(w, h)
-        b.align(lv.ALIGN.TOP_LEFT, x, y)
-        b.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
-        b.set_style_radius(8, 0)
-        self.btn = b
-        self.idx = idx
-        l = lv.label(b)
-        l.set_text(str(idx + 1))
-        l.set_style_text_color(lv.color_white(), 0)
-        l.center()
-        self.lbl = l
-        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+def queue_start_level(idx):
+    global start_t, start_idx
+    start_idx = idx
+    if start_t == 0:
+        start_t = lv.timer_create_basic()
+        start_t.set_period(50)
+        start_t.set_cb(deferred_start_level)
 
-    def oc(self, e):
-        global start_t, start_idx
-        start_idx = self.idx
-        if start_t == 0:
-            start_t = lv.timer_create_basic()
-            start_t.set_period(50)
-            start_t.set_cb(deferred_start_level)
+def on_level_0(evt):
+    queue_start_level(0)
+
+def on_level_1(evt):
+    queue_start_level(1)
+
+def on_level_2(evt):
+    queue_start_level(2)
+
+def on_level_3(evt):
+    queue_start_level(3)
 
 for i in range(MAX_LEVELS):
     col = i % 3
     row = i // 3
     x = 50 + col * 80
     y = 70 + row * 80
-    lb = LvlBtn(menu_layer, i, x, y, 60, 60)
-    lvl_instances.append(lb)
+    b = lv.btn(menu_layer)
+    b.set_size(60, 60)
+    b.align(lv.ALIGN.TOP_LEFT, x, y)
+    b.set_style_bg_color(lv.palette_main(lv.PALETTE.BLUE_GREY), 0)
+    b.set_style_radius(8, 0)
+    l = lv.label(b)
+    l.set_text(str(i + 1))
+    l.set_style_text_color(lv.color_white(), 0)
+    l.center()
+    if i == 0:
+        b.add_event_cb(on_level_0, lv.EVENT.CLICKED, 0)
+    elif i == 1:
+        b.add_event_cb(on_level_1, lv.EVENT.CLICKED, 0)
+    elif i == 2:
+        b.add_event_cb(on_level_2, lv.EVENT.CLICKED, 0)
+    else:
+        b.add_event_cb(on_level_3, lv.EVENT.CLICKED, 0)
+    lvl_instances.append(b)
 
 
 # ==========================================
