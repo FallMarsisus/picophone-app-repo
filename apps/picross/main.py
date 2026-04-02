@@ -169,7 +169,7 @@ def start_level(idx):
         for c in range(GRID_SIZE):
             pgrid[r * GRID_SIZE + c] = 0
             cr = cbtn[r]
-            cr[c].btn.set_style_bg_color(lv.color_white(), 0)
+            cr[c].set_style_bg_color(lv.color_white(), 0)
             
     for r in range(GRID_SIZE):
         r_lbls[r].set_text(get_r_hint(LEVEL[r]))
@@ -340,30 +340,103 @@ def check_win():
     win_t.set_period(150)
     win_t.set_cb(defer_win)
 
-class Cell:
-    def __init__(self, p, r, c, x, y, w, h):
-        b = lv.btn(p)
-        b.set_size(w, h)
-        b.align(lv.ALIGN.TOP_LEFT, x, y)
+def toggle_cell_idx(idx):
+    if gover:
+        return
+    cur = pgrid[idx]
+    r = idx // GRID_SIZE
+    c = idx % GRID_SIZE
+    b = cbtn[r][c]
+    if cur == 0:
+        pgrid[idx] = 1
+        b.set_style_bg_color(lv.color_black(), 0)
+    else:
+        pgrid[idx] = 0
         b.set_style_bg_color(lv.color_white(), 0)
-        b.set_style_radius(4, 0)
-        self.btn = b
-        self.r = r
-        self.c = c
-        b.add_event_cb(self.oc, lv.EVENT.CLICKED, None)
+    check_win()
 
-    def oc(self, e):
-        if gover:
-            return
-        idx = self.r * GRID_SIZE + self.c
-        cur = pgrid[idx]
-        if cur == 0:
-            pgrid[idx] = 1
-            self.btn.set_style_bg_color(lv.color_black(), 0)
-        else:
-            pgrid[idx] = 0
-            self.btn.set_style_bg_color(lv.color_white(), 0)
-        check_win()
+def on_cell_0(evt):
+    toggle_cell_idx(0)
+
+def on_cell_1(evt):
+    toggle_cell_idx(1)
+
+def on_cell_2(evt):
+    toggle_cell_idx(2)
+
+def on_cell_3(evt):
+    toggle_cell_idx(3)
+
+def on_cell_4(evt):
+    toggle_cell_idx(4)
+
+def on_cell_5(evt):
+    toggle_cell_idx(5)
+
+def on_cell_6(evt):
+    toggle_cell_idx(6)
+
+def on_cell_7(evt):
+    toggle_cell_idx(7)
+
+def on_cell_8(evt):
+    toggle_cell_idx(8)
+
+def on_cell_9(evt):
+    toggle_cell_idx(9)
+
+def on_cell_10(evt):
+    toggle_cell_idx(10)
+
+def on_cell_11(evt):
+    toggle_cell_idx(11)
+
+def on_cell_12(evt):
+    toggle_cell_idx(12)
+
+def on_cell_13(evt):
+    toggle_cell_idx(13)
+
+def on_cell_14(evt):
+    toggle_cell_idx(14)
+
+def on_cell_15(evt):
+    toggle_cell_idx(15)
+
+def on_cell_16(evt):
+    toggle_cell_idx(16)
+
+def on_cell_17(evt):
+    toggle_cell_idx(17)
+
+def on_cell_18(evt):
+    toggle_cell_idx(18)
+
+def on_cell_19(evt):
+    toggle_cell_idx(19)
+
+def on_cell_20(evt):
+    toggle_cell_idx(20)
+
+def on_cell_21(evt):
+    toggle_cell_idx(21)
+
+def on_cell_22(evt):
+    toggle_cell_idx(22)
+
+def on_cell_23(evt):
+    toggle_cell_idx(23)
+
+def on_cell_24(evt):
+    toggle_cell_idx(24)
+
+CELL_CBS = [
+    on_cell_0, on_cell_1, on_cell_2, on_cell_3, on_cell_4,
+    on_cell_5, on_cell_6, on_cell_7, on_cell_8, on_cell_9,
+    on_cell_10, on_cell_11, on_cell_12, on_cell_13, on_cell_14,
+    on_cell_15, on_cell_16, on_cell_17, on_cell_18, on_cell_19,
+    on_cell_20, on_cell_21, on_cell_22, on_cell_23, on_cell_24
+]
 
 # --- CRÉATION DE LA GRILLE ET DES INDICES DANS GAME_LAYER ---
 for r in range(GRID_SIZE):
@@ -385,6 +458,13 @@ for r in range(GRID_SIZE):
     for c in range(GRID_SIZE):
         tx = GRID_X + c * (CELL_SIZE + CELL_GAP)
         ty = GRID_Y + r * (CELL_SIZE + CELL_GAP)
-        cell = Cell(game_layer, r, c, tx, ty, CELL_SIZE, CELL_SIZE)
-        row_btns.append(cell)
+        cell_btn = lv.btn(game_layer)
+        cell_btn.set_size(CELL_SIZE, CELL_SIZE)
+        cell_btn.align(lv.ALIGN.TOP_LEFT, tx, ty)
+        cell_btn.set_style_bg_color(lv.color_white(), 0)
+        cell_btn.set_style_radius(4, 0)
+        idx = r * GRID_SIZE + c
+        cb = CELL_CBS[idx]
+        cell_btn.add_event_cb(cb, lv.EVENT.CLICKED, 0)
+        row_btns.append(cell_btn)
     cbtn.append(row_btns)

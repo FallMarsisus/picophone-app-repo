@@ -3,7 +3,7 @@
     "name": "Picross",
     "description": "A puzzle game where you fill in a grid based on numerical clues", 
     "author": "FallMarsisus",
-    "version": "1.1.11",
+    "version": "1.1.12",
     "entry": "main.py",
     "category": "game"
 }
