@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-04-02T22:31:39.980100+00:00",
+  "generated_at": "2026-04-09T23:04:28.309623+00:00",
   "app_count": 4,
   "apps": [
     {
@@ -20,12 +20,12 @@
       "name": "Picross",
       "description": "A puzzle game where you fill in a grid based on numerical clues",
       "author": "FallMarsisus",
-      "version": "1.1.13",
+      "version": "1.1.14",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-04-03T00:31:31+02:00",
+      "last_updated": "2026-04-10T01:04:19+02:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "fc7645005d82a8bba7835cc44ee2132cd6b42b7c"
+      "last_commit_sha": "dbc0581259594ce56b5429edc924ae88846958da"
     },
     {
       "id": "pomodoro",
@@ -44,12 +44,12 @@
       "name": "Wordle",
       "description": "The classic Wordle word-guessing game. Guess the 5-letter word in 6 tries. Colors indicate correct letters (green), misplaced letters (yellow) or absent letters (gray).",
       "author": "FallMarsisus",
-      "version": "1.6.7",
+      "version": "1.6.8",
       "entry": "main.py",
       "category": "game",
-      "last_updated": "2026-03-08T11:44:32+01:00",
+      "last_updated": "2026-04-10T01:04:19+02:00",
       "last_updated_by": "Marsisus",
-      "last_commit_sha": "25305fc67ab853cc48839bc925de9dd865bc50ec"
+      "last_commit_sha": "dbc0581259594ce56b5429edc924ae88846958da"
     }
   ]
 }
